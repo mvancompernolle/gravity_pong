@@ -1,0 +1,164 @@
+#pragma once
+
+#ifndef GRAVITY_PONG_H
+#define GRAVITY_PONG_H
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <irrklang/irrKlang.h>
+
+#include <list>
+
+#include "Game.h"
+#include "SpriteRenderer.h"
+#include "PostProcessor.h"
+#include "ParticleGenerator.h"
+#include "TextRenderer.h"
+#include "ResourceManager.h"
+#include "PaddleObject.h"
+#include "GameBall.h"
+#include "GravityBall.h"
+#include "player_selected.h"
+
+enum GameState {
+	GAME_ACTIVE,
+	GAME_MENU,
+	GAME_OVER,
+	GAME_PAUSED
+};
+
+enum Direction {
+	UP,
+	RIGHT,
+	DOWN,
+	LEFT
+};
+
+enum PUNISHMENT_TYPE {
+	SLOW, 
+	SHRINK,
+	OBUSE
+};
+
+typedef std::tuple<GLboolean, Direction, glm::vec2> Collision;
+
+struct Punishment {
+	PLAYER_SELECTED player;
+	PUNISHMENT_TYPE type;
+	GLfloat			timeLeft;
+	GLuint			charges;
+	PaddleObject*	paddle;
+
+	Punishment() {
+		player = NO_ONE;
+		type = SLOW;
+		timeLeft = 0.0f;
+		charges = 0;
+		paddle = nullptr;
+	}
+
+	Punishment( PLAYER_SELECTED player, PUNISHMENT_TYPE type, PaddleObject* paddle ) {
+		this->type = type;
+		this->player = player;
+		this->paddle = paddle;
+
+		switch( type ) {
+		case SLOW:
+			timeLeft = 10.0f;
+			charges = 0;
+			break;
+		case SHRINK:
+			timeLeft = 10.0f;
+			charges = 0;
+			break;
+		case OBUSE:
+			timeLeft = 0.0f;
+			charges = 3;
+			break;
+		}
+	}
+
+	std::string getPunishmentName() const {
+		switch( type ) {
+		case SLOW:
+			return "Slow";
+			break;
+		case SHRINK:
+			return "Shrink";
+			break;
+		case OBUSE:
+			return "Obuse";
+			break;
+		}
+	}
+
+};
+
+class GravityPong : public Game {
+public:
+	// ball constants
+	const GLfloat DEFAULT_BALL_SPEED = 1000.0f;
+	const GLfloat MAX_HIT_ANGLE = 75.0f;
+	const GLfloat MIN_BALL_SPEED = 300.0f;
+	const GLfloat MIN_BALL_SPEED_X = 200.0f;
+	const GLfloat MAX_BALL_SPEED = 2000.0f;
+
+	// gravity  ball
+	const GLfloat GRAV_STARTING_RADIUS = 20.0f;
+	const GLuint GRAV_BALL_COST = 200;
+
+	// player
+	const GLuint NUM_LIVES = 5;
+	const GLuint ENERGY_PER_BOUNCE = 100;
+	const GLfloat BOUNCE_COOLDOWN_TIME = 0.25f;
+	const GLfloat PADDLE_SPEED;
+	const glm::vec2 PADDLE_SIZE;
+
+	// punishments
+	const GLfloat PUNISHMENT_COUNTDOWN = 20.0f;
+	const GLfloat SHRINK_AMOUNT = 0.65;
+
+			GravityPong( GLuint width, GLuint height );
+			~GravityPong();
+	void	init();
+	void	processInput( const GLfloat dt );
+	void	update( const GLfloat dt );
+	void	render();
+
+private:
+	GameState					state;
+	SpriteRenderer*				spriteRenderer;
+	PostProcessor*				postEffectsRenderer;
+	ParticleGenerator*			particlesRenderer;
+	TextRenderer*				textRenderer;
+	irrklang::ISoundEngine*		soundEngine;
+	GLuint						p1Lives, p2Lives;
+	PaddleObject				*player1, *player2;
+	GameBall*					ball;
+	std::list<GravityBall>		gravityBalls;
+	GravityBall					*p1ChargingGravBall, *p2ChargingGravBall;
+	GLfloat						p1Energy, p2Energy;
+	glm::vec2					heightRange;
+	GLfloat						p1BounceCooldown, p2BounceCooldown;
+	GLfloat						nextPunishmentCountdown;
+	Punishment					punishment;
+
+	GLboolean					checkRectRectCollision( const GameObject& one, const GameObject& two ) const;
+	GLboolean					checkBallBallCollision( const BallObject& one, const BallObject& two ) const;
+	Collision					checkBallRectCollision( const BallObject& one, const GameObject& two ) const;
+	Direction					vectorDirection( const glm::vec2 target ) const;
+	void						handleCollisions();
+	void						resolveBallPlayerCollision( BallObject& ball, const PaddleObject player, const int num );
+	void						resetGame();
+	void						updateGravityBalls( const GLfloat dt );
+	void						renderGUI() const;
+	void						unselectGravBall( const PLAYER_SELECTED player );
+	GravityBall*				findSelectedGravBall( const PLAYER_SELECTED player );
+	void						handleCooldowns( const GLfloat dt );
+	void						dealPunishment();
+	void						clearPunishment();
+};
+
+#endif // GRAVITY_PONG_H
