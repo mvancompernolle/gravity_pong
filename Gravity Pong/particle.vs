@@ -8,9 +8,9 @@ out vec4 fsParticleColor;
 uniform mat4 projection;
 uniform vec2 offset;
 uniform vec4 color;
+uniform float scale;
 
 void main() {
-	float scale = 30.0;
 	fsTex = vsVert.zw;
 	fsParticleColor = color;
 	gl_Position = projection * vec4( ( vsVert.xy * scale ) + offset, 0.0, 1.0 );

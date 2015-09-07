@@ -20,6 +20,8 @@
 #include "PaddleObject.h"
 #include "GameBall.h"
 #include "GravityBall.h"
+#include "Missile.h"
+#include "Explosion.h"
 #include "player_selected.h"
 
 enum GameState {
@@ -101,15 +103,25 @@ public:
 	// ball constants
 	const GLfloat DEFAULT_BALL_SPEED = 1000.0f;
 	const GLfloat MAX_HIT_ANGLE = 75.0f;
-	const GLfloat MIN_BALL_SPEED = 300.0f;
+	//const GLfloat MIN_BALL_SPEED = 300.0f;
 	const GLfloat MIN_BALL_SPEED_X = 200.0f;
-	const GLfloat MAX_BALL_SPEED = 2000.0f;
+	const GLfloat MAX_BALL_SPEED = 1200.0f;
 
 	// gravity  ball
 	const GLfloat GRAV_STARTING_RADIUS = 20.0f;
 	const GLuint GRAV_BALL_COST = 200;
 
+	// missile
+	const GLuint MISSILE_COOLDOWN = 1.0f;
+	const GLuint MISSILE_COST = 300;
+	const GLuint MISSILE_POWER = 2000;
+	const GLfloat EXPLOSION_TIME = 0.5f;
+	const GLfloat EXPLOSION_RADIUS = 150.0f;
+	const GLfloat EXPLOSION_STUN_TIME = 1.0f;
+	const glm::vec2 MISSILE_SIZE;
+
 	// player
+	const GLuint ENERGY_PER_SECOND = 25;
 	const GLuint NUM_LIVES = 5;
 	const GLuint ENERGY_PER_BOUNCE = 100;
 	const GLfloat BOUNCE_COOLDOWN_TIME = 0.25f;
@@ -138,7 +150,10 @@ private:
 	PaddleObject				*player1, *player2;
 	GameBall*					ball;
 	std::list<GravityBall>		gravityBalls;
+	std::list<Explosion>		explosions;
 	GravityBall					*p1ChargingGravBall, *p2ChargingGravBall;
+	Missile						*p1Missile, *p2Missile;
+	GLfloat						p1MissileCooldown, p2MissileCooldown;
 	GLfloat						p1Energy, p2Energy;
 	glm::vec2					heightRange;
 	GLfloat						p1BounceCooldown, p2BounceCooldown;
@@ -148,6 +163,7 @@ private:
 	GLboolean					checkRectRectCollision( const GameObject& one, const GameObject& two ) const;
 	GLboolean					checkBallBallCollision( const BallObject& one, const BallObject& two ) const;
 	Collision					checkBallRectCollision( const BallObject& one, const GameObject& two ) const;
+	GLboolean					checkWallsRectCollision( const GameObject& object ) const;
 	Direction					vectorDirection( const glm::vec2 target ) const;
 	void						handleCollisions();
 	void						resolveBallPlayerCollision( BallObject& ball, const PaddleObject player, const int num );
@@ -159,6 +175,9 @@ private:
 	void						handleCooldowns( const GLfloat dt );
 	void						dealPunishment();
 	void						clearPunishment();
+	void						rotateRectangle( glm::vec2 rect[4], const GLfloat rotation, const glm::vec2 center = glm::vec2( 0.0f ) ) const;
+	void						causeMissileExplosion( const Missile& missile, const GLboolean missileCheck = GL_TRUE );
+	void						deleteMissile( Missile*& missile );
 };
 
 #endif // GRAVITY_PONG_H

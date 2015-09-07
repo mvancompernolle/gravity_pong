@@ -8,7 +8,8 @@ const float PI = 3.14159265358;
 
 GravityPong::GravityPong( GLuint width, GLuint height )
 	: Game( width, height ), state( GAME_OVER ), p1Lives( NUM_LIVES ), p2Lives( NUM_LIVES ), heightRange( 1.0f / 8.0f * height, height ), p1BounceCooldown( 0.0f ), p2BounceCooldown( 0.0f ),
-	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height * ( 7.0f / 8.0f ) ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ) {
+	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height * ( 7.0f / 8.0f ) ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
+	MISSILE_SIZE( height / 20.0f, height / 40.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ) {
 	init();
 }
 
@@ -16,7 +17,7 @@ GravityPong::~GravityPong() {
 	delete textRenderer;
 	delete soundEngine;
 	delete spriteRenderer;
-	//delete particlesRenderer;
+	delete particlesRenderer;
 	delete postEffectsRenderer;
 	delete player1;
 	delete player2;
@@ -43,6 +44,9 @@ void GravityPong::init() {
 	ResourceManager::loadTexture( "character.png", GL_TRUE, "ball" );
 	ResourceManager::loadTexture( "arrow_green.png", GL_TRUE, "green_arrow" );
 	ResourceManager::loadTexture( "gravity_ball.png", GL_TRUE, "gravity_ball" );
+	ResourceManager::loadTexture( "missile.png", GL_TRUE, "missile" );
+	ResourceManager::loadTexture( "explosion.png", GL_TRUE, "explosion" );
+	ResourceManager::loadTexture( "smoke.png", GL_TRUE, "smoke" );
 	ResourceManager::loadTexture( "black_color.png", GL_FALSE, "black" );
 	ResourceManager::loadTexture( "green_color.png", GL_FALSE, "green" );
 	ResourceManager::loadTexture( "light_blue_color.png", GL_FALSE, "light_blue" );
@@ -51,10 +55,9 @@ void GravityPong::init() {
 
 	// create player paddles
 	glm::vec2 playerPos = glm::vec2( 0.0f, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
-	glm::vec2 vel = glm::vec2( 0.0f, PADDLE_SPEED );
-	player1 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec3( 1.0f ), ResourceManager::getTexture( "paddle" ), vel );
+	player1 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec3( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
 	playerPos = glm::vec2( width - PADDLE_SIZE.x, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
-	player2 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec3( 1.0f ), ResourceManager::getTexture( "paddle" ), vel );
+	player2 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec3( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
 
 	// create ball
 	GLuint radius = ( heightRange.y - heightRange.x ) / 50.0f;
@@ -65,7 +68,7 @@ void GravityPong::init() {
 	// create renderers
 	spriteRenderer = new SpriteRenderer( ResourceManager::getShader( "sprite" ) );
 	postEffectsRenderer = new PostProcessor( ResourceManager::getShader( "postProcessor" ), width, height );
-	//particlesRenderer = new ParticleGenerator( ResourceManager::getShader( "particles" ),  );
+	particlesRenderer = new ParticleGenerator( ResourceManager::getShader( "particle" ), ResourceManager::getTexture( "smoke" ), 500, 20.0f );
 	textRenderer = new TextRenderer( width, height );
 	textRenderer->load( "ocraext.TTF", 24 );
 
@@ -82,16 +85,16 @@ void GravityPong::init() {
 void GravityPong::processInput( const GLfloat dt ) {
 	if( state == GAME_ACTIVE ) {
 		if( keys[GLFW_KEY_W] ) {
-			player1->move( PADDLE_UP, dt, heightRange );
+			player1->move( PADDLE_UP );
 		}
 		if( keys[GLFW_KEY_S] ) {
-			player1->move( PADDLE_DOWN, dt, heightRange );
+			player1->move( PADDLE_DOWN );
 		}
 		if( keys[GLFW_KEY_UP] ) {
-			player2->move( PADDLE_UP, dt, heightRange );
+			player2->move( PADDLE_UP );
 		}
 		if( keys[GLFW_KEY_DOWN] ) {
-			player2->move( PADDLE_DOWN, dt, heightRange );
+			player2->move( PADDLE_DOWN );
 		}
 		if( keys[GLFW_KEY_D] ) {
 			if( p1ChargingGravBall == nullptr && p1Energy >= GRAV_BALL_COST ) {
@@ -127,6 +130,30 @@ void GravityPong::processInput( const GLfloat dt ) {
 				gravPtr->selectedBy = NO_ONE;
 			}
 		}
+		if( keys[GLFW_KEY_E] ) {
+			if( p1Missile == nullptr && p1Energy >= MISSILE_COST && p1MissileCooldown <= 0.0f ) {
+				p1Missile = new Missile( glm::vec2( player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "missile" ), ball );
+				p1Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
+				p1Missile->color = glm::vec3( 0.5f, 1.0f, 0.5f );
+				p1Energy -= MISSILE_COST;
+				keysProcessed[GLFW_KEY_E] = GL_TRUE;
+			} else if( p1Missile != nullptr && !keysProcessed[GLFW_KEY_E] ) {
+				causeMissileExplosion( *p1Missile );
+				deleteMissile( p1Missile );
+			}
+		}
+		if( keys[GLFW_KEY_KP_0] ) {
+			if( p2Missile == nullptr && p2Energy >= MISSILE_COST && p2MissileCooldown <= 0.0f ) {
+				p2Missile = new Missile( glm::vec2( player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "missile" ), ball, 180.0f );
+				p2Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
+				p2Missile->color = glm::vec3( 0.5f, 0.7f, 1.0f );
+				p2Energy -= MISSILE_COST;
+				keysProcessed[GLFW_KEY_KP_0] = GL_TRUE;
+			} else if( p2Missile != nullptr && !keysProcessed[GLFW_KEY_KP_0] ) {
+				causeMissileExplosion( *p2Missile );
+				deleteMissile( p2Missile );
+			}
+		}
 	} else if( state == GAME_OVER ) {
 		if( keys[GLFW_KEY_ENTER] ) {
 			resetGame();
@@ -137,11 +164,47 @@ void GravityPong::processInput( const GLfloat dt ) {
 
 void GravityPong::update( const GLfloat dt ) {
 	if( state == GAME_ACTIVE ) {
+
+		// give players energy
+		p1Energy += ENERGY_PER_SECOND * dt;
+		p2Energy += ENERGY_PER_SECOND * dt;
+
+		player1->update( dt, heightRange );
+		player2->update( dt, heightRange );
 		ball->update( dt, heightRange );
+
 
 		handleCooldowns( dt );
 
 		updateGravityBalls( dt );
+
+		for( Explosion& explosion : explosions ) {
+			explosion.update( dt );
+		}
+
+		// remove explosions with no time left
+		explosions.erase( std::remove_if( explosions.begin(), explosions.end(), [&]( const Explosion& explosion ) {
+			return explosion.timeLeft <= 0.0f;
+		} ), explosions.end() );
+
+		if( p1Missile != nullptr ) {
+			p1Missile->update( dt );
+			glm::vec2 offset = glm::vec2( -p1Missile->size.x, 0.0f );
+			GLfloat tmpX = 0.0f, tmpY = 0.0f, rot = glm::radians( p1Missile->rotation );
+			tmpX = offset.x * std::cos( rot ) - offset.y * std::sin( rot );
+			tmpY = offset.x * std::sin( rot ) + offset.y * std::cos( rot );
+			particlesRenderer->addParticles( *p1Missile, 3, glm::vec2( tmpX, tmpY ) );
+		}
+		if( p2Missile != nullptr ) {
+			p2Missile->update( dt );
+			glm::vec2 offset = glm::vec2( -p2Missile->size.x / 2.0f, 0.0f );
+			GLfloat tmpX = 0.0f, tmpY = 0.0f, rot = glm::radians( p2Missile->rotation );
+			tmpX = offset.x * std::cos( rot ) - offset.y * std::sin( rot );
+			tmpY = offset.x * std::sin( rot ) + offset.y * std::cos( rot );
+			particlesRenderer->addParticles( *p2Missile, 3, glm::vec2( tmpX, tmpY ) );
+		}
+		particlesRenderer->update( dt );
+
 		handleCollisions();
 
 		// check to see if ball scored
@@ -164,7 +227,7 @@ void GravityPong::update( const GLfloat dt ) {
 
 		// if ball is going too slow, launch it
 		GLfloat speed = glm::length( ball->vel );
-		if( !(punishment.type == OBUSE && punishment.charges > 0) && !ball->isLaunching && ( speed < MIN_BALL_SPEED || std::abs( ball->vel.x ) < MIN_BALL_SPEED_X ) ) {
+		if( !( punishment.type == OBUSE && punishment.charges > 0 ) && !ball->isLaunching && ( std::abs( ball->vel.x ) < MIN_BALL_SPEED_X ) ) {
 			ball->startLaunch();
 		} else if( speed > MAX_BALL_SPEED ) {
 			// if ball is going to fast slow it down
@@ -210,9 +273,22 @@ void GravityPong::render() {
 		}
 	}
 
+	particlesRenderer->draw();
+	if( p1Missile != nullptr ) {
+		p1Missile->draw( *spriteRenderer );
+	}
+	if( p2Missile != nullptr ) {
+		p2Missile->draw( *spriteRenderer );
+	}
+
 	ball->draw( *spriteRenderer );
 	player1->draw( *spriteRenderer );
 	player2->draw( *spriteRenderer );
+
+	// draw explosions on top
+	for( Explosion& explosion : explosions ) {
+		explosion.draw( *spriteRenderer );
+	}
 
 	renderGUI();
 
@@ -268,6 +344,41 @@ void GravityPong::handleCollisions() {
 		resolveBallPlayerCollision( *ball, *player, num );
 	}
 
+	// handle missile collisions
+	if( p1Missile != nullptr ) {
+		GLboolean wasCollision = false;
+		Collision collision = checkBallRectCollision( *ball, *p1Missile );
+		if( std::get<0>( collision ) ) {
+			wasCollision = true;
+		} else if( checkRectRectCollision( *player1, *p1Missile ) || checkRectRectCollision( *player2, *p1Missile ) || checkWallsRectCollision( *p1Missile ) ) {
+			wasCollision = true;
+		}
+		if( wasCollision ) {
+			causeMissileExplosion( *p1Missile );
+			deleteMissile( p1Missile );
+		}
+	}
+	if( p2Missile != nullptr ) {
+		GLboolean wasCollision = false;
+		Collision collision = checkBallRectCollision( *ball, *p2Missile );
+		if( std::get<0>( collision ) ) {
+			wasCollision = true;
+		} else if( checkRectRectCollision( *player1, *p2Missile ) || checkRectRectCollision( *player2, *p2Missile ) || checkWallsRectCollision( *p2Missile ) ) {
+			wasCollision = true;
+		}
+		if( wasCollision ) {
+			causeMissileExplosion( *p2Missile );
+			deleteMissile( p2Missile );
+		}
+	}
+	// see if missiles collided
+	if( p1Missile != nullptr && p2Missile != nullptr && checkRectRectCollision( *p1Missile, *p2Missile ) ) {
+		// blow up first missile, explosion will cause 2nd missile to blow up
+		causeMissileExplosion( *p1Missile );
+		deleteMissile( p1Missile );
+	}
+
+
 	// handle gravity ball player collisions
 	for( GravityBall& gravBall : gravityBalls ) {
 
@@ -309,13 +420,61 @@ void GravityPong::handleCollisions() {
 }
 
 GLboolean GravityPong::checkRectRectCollision( const GameObject& one, const GameObject& two ) const {
-	// collision with x axis
-	bool collisionX = ( one.pos.x + one.size.x >= two.pos.x ) && ( two.pos.x + two.size.x >= one.pos.x );
+	if( (GLint)one.rotation % 360 == 0 && (GLint)two.rotation % 360 == 0 ) {
+		// hancle case where rectangle is not rotated
+		// collision with x axis
+		bool collisionX = ( one.pos.x + one.size.x >= two.pos.x ) && ( two.pos.x + two.size.x >= one.pos.x );
 
-	// colission with y axis
-	bool collisionY = ( one.pos.y + one.size.y >= two.pos.y ) && ( two.pos.y + two.size.y >= one.pos.y );
+		// colission with y axis
+		bool collisionY = ( one.pos.y + one.size.y >= two.pos.y ) && ( two.pos.y + two.size.y >= one.pos.y );
 
-	return collisionX && collisionY;
+		return collisionX && collisionY;
+	} else {
+		// handle case where rectangles are rotated
+		glm::vec2 rect1[4];
+		glm::vec2 rect2[4];
+		one.getVertices( rect1 );
+		two.getVertices( rect2 );
+
+		// calculate the 4 axes
+		glm::vec2 axes[4] = {
+			glm::vec2( glm::normalize( rect1[1] - rect1[0] ) ),
+			glm::vec2( glm::normalize( rect1[2] - rect1[1] ) ),
+			glm::vec2( glm::normalize( rect2[1] - rect2[0] ) ),
+			glm::vec2( glm::normalize( rect2[2] - rect2[1] ) )
+		};
+
+		// loop through each axis and project rectangle vertices onto it
+		GLfloat min1, max1, min2, max2;
+		GLfloat dotProduct;
+		for( int i = 0; i < 4; ++i ) {
+			// calculate projections for first rectangle
+			min1 = max1 = glm::dot( rect1[0], axes[i] );
+			min2 = max2 = glm::dot( rect2[0], axes[i] );
+			for( int v = 1; v < 4; ++v ) {
+				dotProduct = glm::dot( rect1[v], axes[i] );
+				if( dotProduct < min1 ) {
+					min1 = dotProduct;
+				}
+				if( dotProduct > max1 ) {
+					max1 = dotProduct;
+				}
+				dotProduct = glm::dot( rect2[v], axes[i] );
+				if( dotProduct < min2 ) {
+					min2 = dotProduct;
+				}
+				if( dotProduct > max2 ) {
+					max2 = dotProduct;
+				}
+			}
+
+			// test to see if they are not overlapping
+			if( !( min2 <= max1 && max2 >= min1 ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
 }
 
 GLboolean GravityPong::checkBallBallCollision( const BallObject& one, const BallObject& two ) const {
@@ -323,7 +482,17 @@ GLboolean GravityPong::checkBallBallCollision( const BallObject& one, const Ball
 }
 
 Collision GravityPong::checkBallRectCollision( const BallObject& one, const GameObject& two ) const {
-	glm::vec2 centerBall( one.pos + one.radius );
+	glm::vec2 circlePos = one.pos;
+	if( two.rotation != 0.0f ) {
+		GLfloat angle = -two.rotation * ( PI / 180.0f );
+		GLfloat unrotatedCircleX = std::cos( angle ) * ( one.getCenter().x - two.getCenter().x ) - std::sin( angle ) * ( one.getCenter().y - two.getCenter().y ) + two.getCenter().x;
+		GLfloat unrotatedCircleY = std::sin( angle ) * ( one.getCenter().x - two.getCenter().x ) + std::cos( angle ) * ( one.getCenter().y - two.getCenter().y ) + two.getCenter().y;
+
+		// if rectangle is rotated, rotate circle with respect to the rectangles origin center
+		circlePos = glm::vec2( unrotatedCircleX, unrotatedCircleY ) - one.radius;
+	}
+
+	glm::vec2 centerBall( circlePos + one.radius );
 	glm::vec2 rectHalfExtents( two.size.x / 2, two.size.y / 2 );
 	glm::vec2 centerRect( two.pos.x + rectHalfExtents.x, two.pos.y + rectHalfExtents.y );
 
@@ -340,6 +509,18 @@ Collision GravityPong::checkBallRectCollision( const BallObject& one, const Game
 	} else {
 		return std::make_tuple( GL_FALSE, UP, glm::vec2( 0, 0 ) );
 	}
+}
+
+GLboolean GravityPong::checkWallsRectCollision( const GameObject& object ) const {
+	glm::vec2 vertices[4];
+	object.getVertices( vertices );
+	// check for wall collisions
+	for( int i = 0; i < 4; ++i ) {
+		if( vertices[i].x <= 0.0f || vertices[i].x >= width || vertices[i].y <= heightRange.x || vertices[i].y >= heightRange.y ) {
+			return true;
+		}
+	}
+	return false;
 }
 
 Direction GravityPong::vectorDirection( const glm::vec2 target ) const {
@@ -367,7 +548,7 @@ void GravityPong::resetGame() {
 	ball->startLaunch();
 
 	// reset paddles
-	player1->vel = glm::vec2( 0.0f, PADDLE_SPEED );
+	player1->speed = PADDLE_SPEED;
 	player2->size = PADDLE_SIZE;
 	glm::vec2 playerPos = glm::vec2( 0.0f, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
 	player1->reset( playerPos );
@@ -378,7 +559,25 @@ void GravityPong::resetGame() {
 	p2Lives = NUM_LIVES;
 
 	// clear gravity balls
+	if( p1ChargingGravBall != nullptr ) {
+		delete p1ChargingGravBall;
+		p1ChargingGravBall = nullptr;
+	}
+	if( p2ChargingGravBall != nullptr ) {
+		delete p2ChargingGravBall;
+		p2ChargingGravBall = nullptr;
+	}
 	gravityBalls.clear();
+
+	// clear missile
+	if( p1Missile != nullptr ) {
+		delete p1Missile;
+		p1Missile = nullptr;
+	}
+	if( p2Missile != nullptr ) {
+		delete p2Missile;
+		p2Missile = nullptr;
+	}
 
 	// reset punishment
 	clearPunishment();
@@ -435,6 +634,12 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 	for( GravityBall& gravBall : gravityBalls ) {
 		gravBall.update( dt, heightRange );
 		gravBall.pullObject( dt, *ball );
+	}
+	// pull missiles
+	if( p1Missile != nullptr ) {
+		for( GravityBall& gravBall : gravityBalls ) {
+			gravBall.pullObject( dt, *p1Missile );
+		}
 	}
 
 	// remove gravity balls that are out of bounds
@@ -553,6 +758,12 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 	if( p2BounceCooldown > 0.0f ) {
 		p2BounceCooldown -= dt;
 	}
+	if( p1MissileCooldown > 0.0f ) {
+		p1MissileCooldown -= dt;
+	}
+	if( p2MissileCooldown > 0.0f ) {
+		p2MissileCooldown -= dt;
+	}
 	if( nextPunishmentCountdown > 0.0f && punishment.player == NO_ONE ) {
 		nextPunishmentCountdown -= dt;
 		// apply punishment if cooldown reaches 0
@@ -601,11 +812,11 @@ void GravityPong::dealPunishment() {
 
 	// randomly selected the punishment
 	random = rand() % 3;
-	PUNISHMENT_TYPE type = (PUNISHMENT_TYPE) random;
+	PUNISHMENT_TYPE type = (PUNISHMENT_TYPE)random;
 	punishment = Punishment( selectedPlayer, type, paddle );
 	switch( type ) {
 	case SLOW:
-		punishment.paddle->vel = glm::vec2( 0.0f, PADDLE_SPEED * 0.5f );
+		punishment.paddle->speed = PADDLE_SPEED / 2.0f;
 		break;
 	case SHRINK:
 		paddle->pos.y += 0.25f * PADDLE_SIZE.y;
@@ -622,7 +833,7 @@ void GravityPong::clearPunishment() {
 	if( punishment.player != NO_ONE ) {
 		switch( punishment.type ) {
 		case SLOW:
-			punishment.paddle->vel = glm::vec2( 0.0f, PADDLE_SPEED );
+			punishment.paddle->speed = PADDLE_SPEED;
 			break;
 		case SHRINK:
 			punishment.paddle->pos.y -= SHRINK_AMOUNT / 2.0f * PADDLE_SIZE.y;
@@ -633,4 +844,78 @@ void GravityPong::clearPunishment() {
 		punishment = Punishment();
 	}
 	nextPunishmentCountdown = PUNISHMENT_COUNTDOWN;
+}
+
+void GravityPong::rotateRectangle( glm::vec2 rect[4], GLfloat rotation, const glm::vec2 center ) const {
+	GLfloat tmpX, tmpY;
+	rotation *= ( PI / 180.0f );
+	for( int i = 0; i < 4; ++i ) {
+		// translate point with respect to origin
+		rect[i] -= center;
+		tmpX = rect[i].x * std::cos( rotation ) - rect[i].y * std::sin( rotation );
+		tmpY = rect[i].x * std::sin( rotation ) + rect[i].y * std::cos( rotation );
+		rect[i].x = tmpX;
+		rect[i].y = tmpY;
+		rect[i] += center;
+	}
+}
+
+void GravityPong::causeMissileExplosion( const Missile& missile, const GLboolean missileCheck ) {
+	// add explosion to the game
+	explosions.push_back( Explosion( missile.getCenter() - EXPLOSION_RADIUS, EXPLOSION_RADIUS, ResourceManager::getTexture( "explosion" ), EXPLOSION_TIME ) );
+
+	// check to see if ball was in the explosion
+	GLfloat ballDist = glm::distance( ball->getCenter(), missile.getCenter() );
+	if( ballDist <= EXPLOSION_RADIUS ) {
+		// launch the ball
+		glm::vec2 ballDir = glm::normalize( ball->getCenter() - missile.getCenter() );
+		ball->vel += MISSILE_POWER * ( 1.0f - ( ballDist / EXPLOSION_RADIUS ) ) * ballDir;
+	}
+
+	// check to see if gravity balls were hit in the explosion
+	for( GravityBall& gravBall : gravityBalls ) {
+		if( glm::distance( gravBall.getCenter(), missile.getCenter() ) <= gravBall.radius + EXPLOSION_RADIUS ) {
+			gravBall.radius = 0.0f;
+		}
+	}
+
+	// check to see if paddles were hit in the explosion
+	Collision collision = checkBallRectCollision( explosions.back(), *player1 );
+	if( std::get<0>( collision ) ) {
+		player1->stunnedTimer = EXPLOSION_STUN_TIME;
+	} else {
+		collision = checkBallRectCollision( explosions.back(), *player2 );
+		if( std::get<0>( collision ) ) {
+			player2->stunnedTimer = EXPLOSION_STUN_TIME;
+		}
+	}
+
+	if( missileCheck ) {
+		// check to see if other missile was hit in the explosion
+		if( p1Missile == &missile && p2Missile != nullptr ) {
+			// check to see if p2 missile was hit
+			collision = checkBallRectCollision( explosions.back(), *p2Missile );
+			if( std::get<0>( collision ) ) {
+				causeMissileExplosion( *p2Missile, GL_FALSE );
+				deleteMissile( p2Missile );
+			}
+		} else if( p2Missile == &missile && p1Missile != nullptr ) {
+			// check to see if p1 missile was hit
+			collision = checkBallRectCollision( explosions.back(), *p1Missile );
+			if( std::get<0>( collision ) ) {
+				causeMissileExplosion( *p1Missile, GL_FALSE );
+				deleteMissile( p1Missile );
+			}
+		}
+	}
+}
+
+void GravityPong::deleteMissile( Missile*& missile ) {
+	if( missile == p1Missile ) {
+		p1MissileCooldown = MISSILE_COOLDOWN;
+	} else if( missile == p2Missile ) {
+		p2MissileCooldown = MISSILE_COOLDOWN;
+	}
+	delete missile;
+	missile = nullptr;
 }

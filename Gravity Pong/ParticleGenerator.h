@@ -22,10 +22,13 @@ struct Particle {
 
 class ParticleGenerator {
 public:
-			ParticleGenerator( Shader shader, Texture texture, GLuint amount );
-			~ParticleGenerator();
-	void	update( GLfloat dt, GameObject object, GLuint newParticles, glm::vec2 offset = glm::vec2( 0.0f, 0.0f ) );
-	void	draw();
+	GLfloat					particleSize;
+
+							ParticleGenerator( Shader shader, Texture texture, GLuint amount, GLfloat particleSize = 10.0f );
+							~ParticleGenerator();
+	void					addParticles( GameObject object, GLuint newParticles, glm::vec2 offset = glm::vec2( 0.0f, 0.0f ));
+	void					update( GLfloat dt );
+	void					draw();
 
 private:
 	std::vector<Particle>	particles;

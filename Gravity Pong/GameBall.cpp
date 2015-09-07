@@ -10,11 +10,13 @@ const double PI = 3.14159265358;
 
 GameBall::GameBall(){
 	srand( time( NULL ) );
+	this->mass = 50.0f;
 }
 
 GameBall::GameBall( const glm::vec2 pos, const GLfloat radius, const GLfloat speed, const Texture sprite )
 	: BallObject( pos, radius, sprite ), speed( speed ), isLaunching( GL_FALSE ), launchDT( 0.0f ), dir( 0.0f ) {
 	srand( time( NULL ) );
+	this->mass = 50.0f;
 }
 
 GameBall::~GameBall() {

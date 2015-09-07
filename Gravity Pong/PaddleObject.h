@@ -17,9 +17,12 @@ enum PaddleDirection {
 
 class PaddleObject : public GameObject {
 public:
-	PaddleObject( const glm::vec2 pos, const glm::vec2 size, const glm::vec3 color, const Texture sprite, const glm::vec2 vel = glm::vec2( 0.0f, 1000.0f ) );
+	GLfloat		stunnedTimer, speed;
+
+				PaddleObject( const glm::vec2 pos, const glm::vec2 size, const glm::vec3 color, const Texture sprite, const GLfloat speed = 1000.0f );
 				~PaddleObject();
-	void		move( const PaddleDirection dir, const GLfloat dt, const glm::vec2 heightRange );
+	void		move( const PaddleDirection dir );
+	void		update( const GLfloat dt, const glm::vec2 heightRange );
 	void		reset( const glm::vec2 pos );
 };
 

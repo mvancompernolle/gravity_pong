@@ -53,6 +53,6 @@ void GravityBall::pullObject( const GLfloat dt, GameObject& object ) const {
 	if( dist <= MAX_RADIUS * 15.0f ) {
 		// get pull direction
 		glm::vec2 dir = glm::normalize( pos - object.pos );
-		object.vel += dir * ( 1.0f - ( dist / ( MAX_RADIUS * 15.0f ) ) ) * ( radius * 50 ) * dt;
+		object.vel += dir * ( 1.0f - ( dist / ( MAX_RADIUS * 15.0f ) ) ) * ( radius * object.mass ) * dt;
 	}
 }

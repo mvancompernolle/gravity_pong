@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-ParticleGenerator::ParticleGenerator( const Shader shader, const Texture texture, const GLuint amount )
-	: shader(shader), texture(texture), amount(amount), lastUsedParticle(0) {
+ParticleGenerator::ParticleGenerator( const Shader shader, const Texture texture, const GLuint amount, GLfloat particleSize )
+	: shader(shader), texture(texture), amount(amount), lastUsedParticle(0), particleSize( particleSize ) {
 	init();
 }
 
@@ -11,12 +11,15 @@ ParticleGenerator::~ParticleGenerator() {
 	
 }
 
-void ParticleGenerator::update( GLfloat dt, GameObject object, GLuint newParticles, glm::vec2 offset ) {
+void ParticleGenerator::addParticles( GameObject object, GLuint newParticles, glm::vec2 offset ) {
 	// add new particles
 	for( GLuint i = 0; i < newParticles; ++i ) {
 		int unusedParticle = firstUnusedParticle();
 		respawnParticle( particles[unusedParticle], object, offset );
 	}
+}
+
+void ParticleGenerator::update( GLfloat dt ) {
 	// update all particles
 	for( GLuint i = 0; i < amount; ++i ) {
 		Particle& p = particles[i];
@@ -37,6 +40,7 @@ void ParticleGenerator::draw() {
 		if( particle.life > 0.0f ) {
 			shader.setVector2f( "offset", particle.pos );
 			shader.setVector4f( "color", particle.color );
+			shader.setFloat( "scale", particleSize );
 			texture.bind();
 			glBindVertexArray( VAO );
 			glDrawArrays( GL_TRIANGLES, 0, 6 );

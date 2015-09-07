@@ -76,12 +76,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BallObject.cpp" />
+    <ClCompile Include="Explosion.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameBall.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GravityBall.cpp" />
     <ClCompile Include="GravityPong.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Missile.cpp" />
     <ClCompile Include="PaddleObject.cpp" />
     <ClCompile Include="ParticleGenerator.cpp" />
     <ClCompile Include="PostProcessor.cpp" />
@@ -93,11 +95,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BallObject.h" />
+    <ClInclude Include="Explosion.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameBall.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GravityBall.h" />
     <ClInclude Include="GravityPong.h" />
+    <ClInclude Include="Missile.h" />
     <ClInclude Include="PaddleObject.h" />
     <ClInclude Include="ParticleGenerator.h" />
     <ClInclude Include="player_selected.h" />
