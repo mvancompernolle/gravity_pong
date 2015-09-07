@@ -11,11 +11,11 @@ ParticleGenerator::~ParticleGenerator() {
 	
 }
 
-void ParticleGenerator::addParticles( GameObject object, GLuint newParticles, glm::vec2 offset ) {
+void ParticleGenerator::addParticles( GameObject object, GLuint newParticles, glm::vec2 offset, GLfloat rotation ) {
 	// add new particles
 	for( GLuint i = 0; i < newParticles; ++i ) {
 		int unusedParticle = firstUnusedParticle();
-		respawnParticle( particles[unusedParticle], object, offset );
+		respawnParticle( particles[unusedParticle], object, offset, rotation );
 	}
 }
 
@@ -41,6 +41,9 @@ void ParticleGenerator::draw() {
 			shader.setVector2f( "offset", particle.pos );
 			shader.setVector4f( "color", particle.color );
 			shader.setFloat( "scale", particleSize );
+			glm::mat4 model;
+			model = glm::rotate( model, particle.rotation, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+			shader.setMatrix4( "model", model );
 			texture.bind();
 			glBindVertexArray( VAO );
 			glDrawArrays( GL_TRIANGLES, 0, 6 );
@@ -99,11 +102,12 @@ GLuint ParticleGenerator::firstUnusedParticle() {
 	return 0;
 }
 
-void ParticleGenerator::respawnParticle( Particle& particle, const GameObject& object, const glm::vec2 offset ) {
+void ParticleGenerator::respawnParticle( Particle& particle, const GameObject& object, const glm::vec2 offset, const GLfloat rotation ) {
 	GLfloat random = ( ( rand() % 100 ) - 50 ) / 10.0f;
 	GLfloat rColor = 0.5 + ( ( rand() % 100 ) / 100.0f );
 	particle.pos = object.pos + random + offset;
 	particle.color = glm::vec4( rColor, rColor, rColor, 1.0f );
 	particle.life = 1.0f;
 	particle.vel = object.vel * 0.1f;
+	particle.rotation = rotation;
 }

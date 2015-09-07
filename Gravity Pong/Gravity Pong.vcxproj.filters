@@ -45,6 +45,30 @@
     <Image Include="arrow_green.png">
       <Filter>Resource Files\images</Filter>
     </Image>
+    <Image Include="explosion.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="black_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="green_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="missile.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="light_blue_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="red_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="smoke.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="white_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BallObject.cpp">
@@ -180,6 +204,8 @@
     <None Include="text.vs">
       <Filter>Resource Files\shaders</Filter>
     </None>
+    <None Include="FreeImagePlusd.dll" />
+    <None Include="FreeImaged.dll" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="OCRAEXT.TTF">

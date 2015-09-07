@@ -70,9 +70,17 @@
   <ItemGroup>
     <Image Include="arrow_green.png" />
     <Image Include="background.jpg" />
+    <Image Include="black_color.png" />
     <Image Include="character.png" />
+    <Image Include="explosion.png" />
     <Image Include="gravity_ball.png" />
+    <Image Include="green_color.png" />
+    <Image Include="light_blue_color.png" />
+    <Image Include="missile.png" />
     <Image Include="paddle.png" />
+    <Image Include="red_color.png" />
+    <Image Include="smoke.png" />
+    <Image Include="white_color.png" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BallObject.cpp" />
@@ -113,6 +121,8 @@
     <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FreeImaged.dll" />
+    <None Include="FreeImagePlusd.dll" />
     <None Include="ikpFlac.dll" />
     <None Include="ikpMP3.dll" />
     <None Include="irrKlang.dll" />

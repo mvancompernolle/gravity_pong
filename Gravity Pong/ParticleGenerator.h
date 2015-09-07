@@ -15,9 +15,9 @@
 struct Particle {
 	glm::vec2	pos, vel;
 	glm::vec4	color;
-	GLfloat		life;
+	GLfloat		life, rotation;
 
-	Particle() : pos( 0.0f ), vel( 0.0f ), color( 1.0f ), life( 0.0f ) {}
+	Particle() : pos( 0.0f ), vel( 0.0f ), color( 1.0f ), life( 0.0f ), rotation( 0.0f ) {}
 };
 
 class ParticleGenerator {
@@ -26,7 +26,7 @@ public:
 
 							ParticleGenerator( Shader shader, Texture texture, GLuint amount, GLfloat particleSize = 10.0f );
 							~ParticleGenerator();
-	void					addParticles( GameObject object, GLuint newParticles, glm::vec2 offset = glm::vec2( 0.0f, 0.0f ));
+	void					addParticles( GameObject object, GLuint newParticles, glm::vec2 offset = glm::vec2( 0.0f, 0.0f ), GLfloat rotation = 0.0f);
 	void					update( GLfloat dt );
 	void					draw();
 
@@ -40,7 +40,7 @@ private:
 	
 	void	init();
 	GLuint	firstUnusedParticle();
-	void	respawnParticle( Particle& particle, const GameObject& object, const glm::vec2 offset = glm::vec2( 0.0f, 0.0f ) );
+	void	respawnParticle( Particle& particle, const GameObject& object, const glm::vec2 offset = glm::vec2( 0.0f, 0.0f ), const GLfloat rotation = 0.0f );
 };
 
 #endif // PARTICLE_GENERATOR_H

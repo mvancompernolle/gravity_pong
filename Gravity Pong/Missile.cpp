@@ -7,7 +7,7 @@ Missile::Missile( glm::vec2 pos, glm::vec2 size, Texture sprite, GameObject* tar
 	desiredRotation( 0.0f ) {
 	this->rotation = rotation;
 	this->target = defaultTarget;
-	this->mass = 75.0f;
+	this->mass = 100.0f;
 }
 
 Missile::~Missile() {

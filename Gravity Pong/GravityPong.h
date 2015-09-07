@@ -101,11 +101,11 @@ struct Punishment {
 class GravityPong : public Game {
 public:
 	// ball constants
-	const GLfloat DEFAULT_BALL_SPEED = 1000.0f;
+	const GLfloat DEFAULT_BALL_SPEED = 1200.0f;
 	const GLfloat MAX_HIT_ANGLE = 75.0f;
 	//const GLfloat MIN_BALL_SPEED = 300.0f;
-	const GLfloat MIN_BALL_SPEED_X = 200.0f;
-	const GLfloat MAX_BALL_SPEED = 1200.0f;
+	const GLfloat MIN_BALL_SPEED_X = 300.0f;
+	const GLfloat MAX_BALL_SPEED = 1500.0f;
 
 	// gravity  ball
 	const GLfloat GRAV_STARTING_RADIUS = 20.0f;
