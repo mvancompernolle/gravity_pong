@@ -798,7 +798,7 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 			punishment.timeLeft -= dt;
 
 			if ( punishment.type == TRAIL && punishment.charges >= (int) punishment.timeLeft + 1) {
-				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS / 1.5f, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 1000.0f );
+				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS * 0.8, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 100.0f );
 				gravBall.isCollapsing = GL_TRUE;
 				gravBall.color = glm::vec3( 1.0f );
 				gravityBalls.push_back( gravBall );
