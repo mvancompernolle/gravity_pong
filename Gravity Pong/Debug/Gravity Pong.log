@@ -1,27 +1,30 @@
-﻿Build started 9/8/2015 9:34:58 PM.
-     1>Project "C:\Users\Matt\documents\visual studio 2013\Projects\Gravity Pong\Gravity Pong\Gravity Pong.vcxproj" on node 2 (Build target(s)).
+﻿Build started 9/9/2015 12:28:44 PM.
+     1>Project "C:\Users\matthew.vancompernol\Documents\Visual Studio 2013\Projects\Gravity Pong\Gravity Pong\Gravity Pong.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt GravityPong.cpp
          GravityPong.cpp
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gameball.h(15): warning C4244: 'initializing' : conversion from 'float' to 'const int', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.h(133): warning C4244: 'initializing' : conversion from 'float' to 'const GLuint', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.h(151): warning C4305: 'initializing' : truncation from 'double' to 'const GLfloat'
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(7): warning C4305: 'initializing' : truncation from 'double' to 'const float'
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(64): warning C4244: 'initializing' : conversion from 'float' to 'GLuint', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(66): warning C4244: 'argument' : conversion from 'GLuint' to 'const GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(140): warning C4244: 'argument' : conversion from 'GLuint' to 'const GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(152): warning C4244: 'argument' : conversion from 'GLuint' to 'const GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(314): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(327): warning C4244: 'argument' : conversion from 'GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(719): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(740): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(800): warning C4018: '>=' : signed/unsigned mismatch
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(801): warning C4244: 'argument' : conversion from 'double' to 'const GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(952): warning C4244: '=' : conversion from 'const GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(954): warning C4244: '=' : conversion from 'const GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matt\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(774): warning C4715: 'GravityPong::findSelectedGravBall' : not all control paths return a value
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gameball.h(15): warning C4244: 'initializing' : conversion from 'float' to 'const int', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.h(133): warning C4244: 'initializing' : conversion from 'float' to 'const GLuint', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.h(144): warning C4244: 'initializing' : conversion from 'float' to 'const GLuint', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.h(156): warning C4305: 'initializing' : truncation from 'double' to 'const GLfloat'
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(7): warning C4305: 'initializing' : truncation from 'double' to 'const float'
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(64): warning C4244: 'initializing' : conversion from 'float' to 'GLuint', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(66): warning C4244: 'argument' : conversion from 'GLuint' to 'const GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(140): warning C4244: 'argument' : conversion from 'GLuint' to 'const GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(152): warning C4244: 'argument' : conversion from 'GLuint' to 'const GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(339): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(352): warning C4244: 'argument' : conversion from 'GLuint' to 'GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(366): warning C4244: 'argument' : conversion from 'const GLuint' to 'GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(377): warning C4244: 'argument' : conversion from 'const GLuint' to 'GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(782): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(803): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(863): warning C4018: '>=' : signed/unsigned mismatch
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(1015): warning C4244: '=' : conversion from 'const GLuint' to 'GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(1017): warning C4244: '=' : conversion from 'const GLuint' to 'GLfloat', possible loss of data
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(1035): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\matthew.vancompernol\documents\visual studio 2013\projects\gravity pong\gravity pong\gravitypong.cpp(837): warning C4715: 'GravityPong::findSelectedGravBall' : not all control paths return a value
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Matt\documents\visual studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.exe" /INCREMENTAL /NOLOGO opengl32.lib FreeImage.lib freetype26.lib glew32s.lib glfw3.lib irrKlang.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Matt\documents\visual studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Matt\documents\visual studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.lib" /MACHINE:X86 Debug\BallObject.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\matthew.vancompernol\Documents\Visual Studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.exe" /INCREMENTAL /NOLOGO opengl32.lib FreeImage.lib freetype26.lib glew32s.lib glfw3.lib irrKlang.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\matthew.vancompernol\Documents\Visual Studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\matthew.vancompernol\Documents\Visual Studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.lib" /MACHINE:X86 Debug\BallObject.obj
          Debug\Explosion.obj
          Debug\Game.obj
          Debug\GameBall.obj
@@ -39,9 +42,9 @@
          Debug\SpriteRenderer.obj
          Debug\TextRenderer.obj
          Debug\Texture.obj
-     1>LINK : fatal error LNK1201: error writing to program database 'C:\Users\Matt\documents\visual studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.pdb'; check for insufficient disk space, invalid path, or insufficient privilege
-     1>Done Building Project "C:\Users\Matt\documents\visual studio 2013\Projects\Gravity Pong\Gravity Pong\Gravity Pong.vcxproj" (Build target(s)) -- FAILED.
+         Gravity Pong.vcxproj -> C:\Users\matthew.vancompernol\Documents\Visual Studio 2013\Projects\Gravity Pong\Debug\Gravity Pong.exe
+     1>Done Building Project "C:\Users\matthew.vancompernol\Documents\Visual Studio 2013\Projects\Gravity Pong\Gravity Pong\Gravity Pong.vcxproj" (Build target(s)).
 
-Build FAILED.
+Build succeeded.
 
-Time Elapsed 00:00:01.06
+Time Elapsed 00:00:01.04

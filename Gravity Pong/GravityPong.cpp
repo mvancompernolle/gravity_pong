@@ -169,6 +169,22 @@ void GravityPong::processInput( const GLfloat dt ) {
 		}
 		// shoot leech
 		if ( keys[GLFW_KEY_C] && !keysProcessed[GLFW_KEY_C] ) {
+			if ( p1Energy >= LEECH_COST ) {
+				LeechAttack leech( glm::vec2( player1->pos.x + 1.5f * player1->size.x - LEECH_RADIUS, player1->getCenter().y - LEECH_RADIUS ),
+					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( LEECH_SPEED, 0.0f ) );
+				leechAttacks.push_back( leech );
+				p1Energy -= LEECH_COST;
+				keysProcessed[GLFW_KEY_C] = GL_TRUE;
+			}
+		}
+		if ( keys[GLFW_KEY_RIGHT_CONTROL] && !keysProcessed[GLFW_KEY_RIGHT_CONTROL] ) {
+			if ( p2Energy >= LEECH_COST ) {
+				LeechAttack leech( glm::vec2( player2->pos.x - 0.5f * player2->size.x - LEECH_RADIUS, player1->getCenter().y - LEECH_RADIUS ),
+					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( -LEECH_SPEED, 0.0f ) );
+				leechAttacks.push_back( leech );
+				p2Energy -= LEECH_COST;
+				keysProcessed[GLFW_KEY_RIGHT_CONTROL] = GL_TRUE;
+			}
 		}
 	} else if( state == GAME_OVER ) {
 		if( keys[GLFW_KEY_ENTER] ) {
@@ -182,8 +198,9 @@ void GravityPong::update( const GLfloat dt ) {
 	if( state == GAME_ACTIVE ) {
 
 		// give players energy
-		p1Energy += ENERGY_PER_SECOND * dt;
-		p2Energy += ENERGY_PER_SECOND * dt;
+		GLfloat energy = ENERGY_PER_SECOND * dt;
+		addEnergy( P1_SELECTED, energy );
+		addEnergy( P2_SELECTED, energy );
 
 		player1->update( dt, heightRange );
 		player2->update( dt, heightRange );
@@ -220,6 +237,10 @@ void GravityPong::update( const GLfloat dt ) {
 			particlesRenderer->addParticles( *p2Missile, 3, glm::vec2( tmpX, tmpY ) );
 		}
 		particlesRenderer->update( dt );
+
+		for ( LeechAttack& leech : leechAttacks ) {
+			leech.update( dt );
+		}
 
 		handleCollisions();
 
@@ -301,6 +322,10 @@ void GravityPong::render() {
 	player1->draw( *spriteRenderer );
 	player2->draw( *spriteRenderer );
 
+	for ( LeechAttack& leech : leechAttacks ) {
+		leech.draw( *spriteRenderer );
+	}
+
 	// draw explosions on top
 	for( Explosion& explosion : explosions ) {
 		explosion.draw( *spriteRenderer );
@@ -338,7 +363,7 @@ void GravityPong::handleCollisions() {
 
 		// give player energy on bounce
 		if( p1BounceCooldown <= 0.0f ) {
-			p1Energy += ENERGY_PER_BOUNCE;
+			addEnergy( P1_SELECTED, ENERGY_PER_BOUNCE );
 			p1BounceCooldown = BOUNCE_COOLDOWN_TIME;
 		}
 
@@ -349,7 +374,7 @@ void GravityPong::handleCollisions() {
 
 			// give player energy on bounce
 			if( p2BounceCooldown <= 0.0f ) {
-				p2Energy += ENERGY_PER_BOUNCE;
+				addEnergy( P2_SELECTED, ENERGY_PER_BOUNCE );
 				p2BounceCooldown = BOUNCE_COOLDOWN_TIME;
 			}
 		}
@@ -394,6 +419,44 @@ void GravityPong::handleCollisions() {
 		deleteMissile( p1Missile );
 	}
 
+	// check for leech collisions
+	for ( LeechAttack& leech : leechAttacks ) {
+		if ( leech.LAUNCH_DIRECTION.x > 0 ) {
+			// player 1 launched the attack
+			if ( leech.vel.x > 0 ) {
+				Collision collision = checkBallRectCollision( leech, *player2 );
+				if ( std::get<0>( collision ) ) {
+					leech.attachLeech( player2 );
+				}
+			} else if ( leech.vel.x < 0 ) {
+				Collision collision = checkBallRectCollision( leech, *player1 );
+				if ( std::get<0>( collision ) ) {
+					leech.isAlive = GL_FALSE;
+					addEnergy( P1_SELECTED, leech.amountLeeched );
+				}
+			}
+		} else if ( leech.LAUNCH_DIRECTION.x < 0 ) {
+			// player 2 launched the attack
+			if ( leech.vel.x < 0 ) {
+				Collision collision = checkBallRectCollision( leech, *player1 );
+				if ( std::get<0>( collision ) ) {
+					leech.attachLeech( player1 );
+				}
+			} else if ( leech.vel.x > 0 ) {
+				Collision collision = checkBallRectCollision( leech, *player2 );
+				if ( std::get<0>( collision ) ) {
+					leech.isAlive = GL_FALSE;
+					addEnergy( P2_SELECTED, leech.amountLeeched );
+				}
+			}
+		}
+	}
+
+	// delete dead leaches and ones that are out of bounds
+	leechAttacks.erase( std::remove_if( leechAttacks.begin(), leechAttacks.end(), [&]( const LeechAttack& leech ) {
+		return ( ( leech.pos.x < -leech.size.x ) || ( leech.pos.x > width ) || !leech.isAlive );
+	} ), leechAttacks.end() );
+
 
 	// handle gravity ball player collisions
 	for( GravityBall& gravBall : gravityBalls ) {
@@ -410,7 +473,7 @@ void GravityPong::handleCollisions() {
 
 				// give player energy on bounce
 				if( p1BounceCooldown <= 0.0f ) {
-					p1Energy += ENERGY_PER_BOUNCE * ( gravBall.radius / gravBall.MAX_RADIUS );
+					addEnergy( P1_SELECTED, ENERGY_PER_BOUNCE * ( gravBall.radius / gravBall.MAX_RADIUS ) );
 					p1BounceCooldown = BOUNCE_COOLDOWN_TIME;
 				}
 
@@ -425,7 +488,7 @@ void GravityPong::handleCollisions() {
 
 					// give player energy on bounce
 					if( p2BounceCooldown <= 0.0f ) {
-						p2Energy += ENERGY_PER_BOUNCE * ( gravBall.radius / gravBall.MAX_RADIUS );
+						addEnergy( P2_SELECTED, ENERGY_PER_BOUNCE * ( gravBall.radius / gravBall.MAX_RADIUS ) );
 						p2BounceCooldown = BOUNCE_COOLDOWN_TIME;
 					}
 				}
@@ -798,7 +861,7 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 			punishment.timeLeft -= dt;
 
 			if ( punishment.type == TRAIL && punishment.charges >= (int) punishment.timeLeft + 1) {
-				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS * 0.8, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 100.0f );
+				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 100.0f );
 				gravBall.isCollapsing = GL_TRUE;
 				gravBall.color = glm::vec3( 1.0f );
 				gravityBalls.push_back( gravBall );
@@ -955,4 +1018,31 @@ void GravityPong::deleteMissile( Missile*& missile ) {
 	}
 	delete missile;
 	missile = nullptr;
+}
+
+void GravityPong::addEnergy( PLAYER_SELECTED player, GLfloat energy ){
+
+	const PaddleObject* plr;
+	if ( player == P1_SELECTED ) {
+		plr = player1;
+	} else if ( player == P2_SELECTED ) {
+		plr = player2;
+	} else {
+		return;
+	}
+
+	// check to see if leach attached to player 1
+	for ( int i = 0; i < leechAttacks.size() && energy > 0; ++i ) {
+		LeechAttack& leech = leechAttacks[i];
+		if ( leech.attachedTo == plr ) {
+			// give energy to leech and any left overs to the player
+			energy = leech.addEnergy( energy );
+		}
+	}
+
+	if ( player == P1_SELECTED ) {
+		p1Energy += energy;
+	} else if ( player == P2_SELECTED ) {
+		p2Energy += energy;
+	}
 }

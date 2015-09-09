@@ -138,6 +138,11 @@ public:
 	const GLfloat EXPLOSION_STUN_TIME = 1.0f;
 	const glm::vec2 MISSILE_SIZE;
 
+	// leech
+	const GLfloat LEECH_RADIUS = 20.0f;
+	const GLfloat LEECH_SPEED = 1920.0f;
+	const GLuint LEECH_COST = 200.0f;
+
 	// player
 	const GLuint ENERGY_PER_SECOND = 25;
 	const GLuint NUM_LIVES = 5;
@@ -198,6 +203,7 @@ private:
 	void						rotateRectangle( glm::vec2 rect[4], const GLfloat rotation, const glm::vec2 center = glm::vec2( 0.0f ) ) const;
 	void						causeMissileExplosion( const Missile& missile, const GLboolean missileCheck = GL_TRUE );
 	void						deleteMissile( Missile*& missile );
+	void						addEnergy( PLAYER_SELECTED player, GLfloat energy );
 };
 
 #endif // GRAVITY_PONG_H
