@@ -122,6 +122,9 @@
     <ClCompile Include="Explosion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LeechAttack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BallObject.h">
@@ -173,6 +176,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Explosion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LeechAttack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

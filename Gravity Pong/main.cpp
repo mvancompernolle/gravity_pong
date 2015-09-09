@@ -69,6 +69,11 @@ int main( int argc, char* argv[] ) {
 		lastTime = currentTime;
 		glfwPollEvents();
 
+		// keep dt small
+		if( dt > 0.333f ) {
+			dt = 0.333f;
+		}
+
 		// process input
 		game->processInput( dt );
 

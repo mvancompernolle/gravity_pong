@@ -8,8 +8,8 @@ const float PI = 3.14159265358;
 
 GravityPong::GravityPong( GLuint width, GLuint height )
 	: Game( width, height ), state( GAME_OVER ), p1Lives( NUM_LIVES ), p2Lives( NUM_LIVES ), heightRange( 1.0f / 8.0f * height, height ), p1BounceCooldown( 0.0f ), p2BounceCooldown( 0.0f ),
-	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height * ( 7.0f / 8.0f ) ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
-	MISSILE_SIZE( height / 20.0f, height / 40.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ) {
+	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height * ( 7.5f / 8.0f ) ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
+	MISSILE_SIZE( height / 20.0f, height / 40.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), p1IsGravReversed( GL_FALSE ), p2IsGravReversed( GL_FALSE ) {
 	init();
 }
 
@@ -47,6 +47,7 @@ void GravityPong::init() {
 	ResourceManager::loadTexture( "missile.png", GL_TRUE, "missile" );
 	ResourceManager::loadTexture( "explosion.png", GL_TRUE, "explosion" );
 	ResourceManager::loadTexture( "smoke.png", GL_TRUE, "smoke" );
+	ResourceManager::loadTexture( "leech.png", GL_TRUE, "leech" );
 	ResourceManager::loadTexture( "black_color.png", GL_FALSE, "black" );
 	ResourceManager::loadTexture( "green_color.png", GL_FALSE, "green" );
 	ResourceManager::loadTexture( "light_blue_color.png", GL_FALSE, "light_blue" );
@@ -84,6 +85,7 @@ void GravityPong::init() {
 
 void GravityPong::processInput( const GLfloat dt ) {
 	if( state == GAME_ACTIVE ) {
+		// movement keys
 		if( keys[GLFW_KEY_W] ) {
 			player1->move( PADDLE_UP );
 		}
@@ -96,6 +98,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 		if( keys[GLFW_KEY_DOWN] ) {
 			player2->move( PADDLE_DOWN );
 		}
+		// used for gravity balls
 		if( keys[GLFW_KEY_D] ) {
 			if( p1ChargingGravBall == nullptr && p1Energy >= GRAV_BALL_COST ) {
 				p1ChargingGravBall = new GravityBall( glm::vec2( player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), GRAV_BALL_COST * 0.5f );
@@ -130,6 +133,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 				gravPtr->selectedBy = NO_ONE;
 			}
 		}
+		// fires and detonates missiles
 		if( keys[GLFW_KEY_E] ) {
 			if( p1Missile == nullptr && p1Energy >= MISSILE_COST && p1MissileCooldown <= 0.0f ) {
 				p1Missile = new Missile( glm::vec2( player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "missile" ), ball );
@@ -153,6 +157,18 @@ void GravityPong::processInput( const GLfloat dt ) {
 				causeMissileExplosion( *p2Missile );
 				deleteMissile( p2Missile );
 			}
+		}
+		// toggles between repulsion and gravity balls
+		if ( keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q] ) {
+			p1IsGravReversed = !p1IsGravReversed;
+			keysProcessed[GLFW_KEY_Q] = GL_TRUE;
+		}
+		if ( keys[GLFW_KEY_KP_1] && !keysProcessed[GLFW_KEY_KP_1] ) {
+			p2IsGravReversed = !p2IsGravReversed;
+			keysProcessed[GLFW_KEY_KP_1] = GL_TRUE;
+		}
+		// shoot leech
+		if ( keys[GLFW_KEY_C] && !keysProcessed[GLFW_KEY_C] ) {
 		}
 	} else if( state == GAME_OVER ) {
 		if( keys[GLFW_KEY_ENTER] ) {
@@ -227,7 +243,7 @@ void GravityPong::update( const GLfloat dt ) {
 
 		// if ball is going too slow, launch it
 		GLfloat speed = glm::length( ball->vel );
-		if( !( punishment.type == OBUSE && punishment.charges > 0 ) && !ball->isLaunching && ( std::abs( ball->vel.x ) < MIN_BALL_SPEED_X ) ) {
+		if( !( punishment.type == ABUSE && punishment.charges > 0 ) && !ball->isLaunching && ( std::abs( ball->vel.x ) < MIN_BALL_SPEED_X ) ) {
 			ball->startLaunch();
 		} else if( speed > MAX_BALL_SPEED ) {
 			// if ball is going to fast slow it down
@@ -548,8 +564,8 @@ void GravityPong::resetGame() {
 	ball->startLaunch();
 
 	// reset paddles
-	player1->speed = PADDLE_SPEED;
-	player2->size = PADDLE_SIZE;
+	player1->speed = player2->speed = PADDLE_SPEED;
+	player2->size = player2->size = PADDLE_SIZE;
 	glm::vec2 playerPos = glm::vec2( 0.0f, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
 	player1->reset( playerPos );
 	playerPos = glm::vec2( width - PADDLE_SIZE.x, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
@@ -608,8 +624,8 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 
 			// launch the gravity ball
 			p1ChargingGravBall->vel = glm::vec2( p1ChargingGravBall->speed, 0.0f );
-			p1ChargingGravBall->color = glm::vec3( 1.0f );
 			p1ChargingGravBall->selectedBy = P1_SELECTED;
+			p1ChargingGravBall->setReversed( p1IsGravReversed );
 			gravityBalls.push_back( *p1ChargingGravBall );
 
 			delete p1ChargingGravBall;
@@ -623,8 +639,9 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 
 			// launch the gravity ball
 			p2ChargingGravBall->vel = glm::vec2( -p2ChargingGravBall->speed, 0.0f );
-			p2ChargingGravBall->color = glm::vec3( 1.0f );
 			p2ChargingGravBall->selectedBy = P2_SELECTED;
+			p2ChargingGravBall->setReversed( p2IsGravReversed );
+			
 			gravityBalls.push_back( *p2ChargingGravBall );
 
 			delete p2ChargingGravBall;
@@ -703,13 +720,19 @@ void GravityPong::renderGUI() const {
 		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f, glm::vec3( 1.0f ) );
 		switch( punishment.type ) {
 		case SLOW:
-			textRenderer->renderText( "Slow", pos.x + size.x / 20.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( "SLOW", pos.x + size.x / 20.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
 			break;
 		case SHRINK:
-			textRenderer->renderText( "Shrink", pos.x + size.x / 20.0f, pos.y + size.y / 3.0f, 1.0f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( "SHRNK", pos.x + size.x / 20.0f, pos.y + size.y / 3.0f, 1.0f, glm::vec3( 0.0f ) );
 			break;
-		case OBUSE:
-			textRenderer->renderText( "Obuse", pos.x + size.x / 20.0f, pos.y + size.y / 4.0f, 1.2f, glm::vec3( 0.0f ) );
+		case ABUSE:
+			textRenderer->renderText( "ABUSE", pos.x + size.x / 20.0f, pos.y + size.y / 4.0f, 1.2f, glm::vec3( 0.0f ) );
+			break;
+		case INVERSE:
+			textRenderer->renderText( "INVRT", pos.x + size.x / 20.0f, pos.y + size.y / 4.0f, 1.2f, glm::vec3( 0.0f ) );
+			break;
+		case TRAIL:
+			textRenderer->renderText( "TRAIL", pos.x + size.x / 20.0f, pos.y + size.y / 4.0f, 1.2f, glm::vec3( 0.0f ) );
 			break;
 		}
 
@@ -774,6 +797,14 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 		if( punishment.timeLeft > 0.0f ) {
 			punishment.timeLeft -= dt;
 
+			if ( punishment.type == TRAIL && punishment.charges >= (int) punishment.timeLeft + 1) {
+				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS / 1.5f, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 1000.0f );
+				gravBall.isCollapsing = GL_TRUE;
+				gravBall.color = glm::vec3( 1.0f );
+				gravityBalls.push_back( gravBall );
+				punishment.charges--;
+			}
+
 			// undo punishment
 			if( punishment.timeLeft <= 0.0f ) {
 				clearPunishment();
@@ -788,7 +819,7 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 
 			if( punishment.charges == 0 ) {
 				switch( punishment.type ) {
-				case OBUSE:
+				case ABUSE:
 					punishment.timeLeft = PRE_LAUNCH_TIME;
 					break;
 				}
@@ -811,20 +842,23 @@ void GravityPong::dealPunishment() {
 	}
 
 	// randomly selected the punishment
-	random = rand() % 3;
+	random = rand() % NUM_PUNISHMENTS;
 	PUNISHMENT_TYPE type = (PUNISHMENT_TYPE)random;
 	punishment = Punishment( selectedPlayer, type, paddle );
 	switch( type ) {
 	case SLOW:
-		punishment.paddle->speed = PADDLE_SPEED / 2.0f;
+		punishment.paddle->speed = PADDLE_SPEED / 1.5f;
 		break;
 	case SHRINK:
 		paddle->pos.y += 0.25f * PADDLE_SIZE.y;
 		punishment.paddle->size.y = PADDLE_SIZE.y * SHRINK_AMOUNT;
 		break;
-	case OBUSE:
+	case ABUSE:
 		ball->startLaunch( punishment.player );
 		--punishment.charges;
+		break;
+	case INVERSE:
+		punishment.paddle->speed = -punishment.paddle->speed;
 		break;
 	}
 }
@@ -838,6 +872,9 @@ void GravityPong::clearPunishment() {
 		case SHRINK:
 			punishment.paddle->pos.y -= SHRINK_AMOUNT / 2.0f * PADDLE_SIZE.y;
 			punishment.paddle->size.y = PADDLE_SIZE.y;
+			break;
+		case INVERSE:
+			punishment.paddle->speed = -punishment.paddle->speed;
 			break;
 		}
 

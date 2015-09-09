@@ -16,13 +16,14 @@ public:
 	GLfloat			GROWTH_RATE;
 	GLfloat			ENERGY_TO_MAX;
 	PLAYER_SELECTED selectedBy;
-	GLboolean		isCollapsing;
+	GLboolean		isCollapsing, isReversed;
 
 					GravityBall( const glm::vec2 pos, const GLfloat radius, const Texture sprite, GLfloat energyCost = 150, GLfloat speed = 500.0f, GLfloat maxRadius = 50.0f, GLfloat growthRate = 10.0f );
 					~GravityBall();
 	void			growBall( const GLfloat dt, GLfloat& energy );
 	void			update( const GLfloat dt, const glm::vec2 heightRange );
 	void			pullObject( const GLfloat dt, GameObject& object ) const;
+	void			setReversed( const GLboolean reverse );
 };
 
 #endif //GRAVITY_BALL_H

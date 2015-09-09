@@ -16,7 +16,7 @@ public:
 	GLfloat			radius;
 
 					BallObject();
-					BallObject(const glm::vec2 pos, const GLfloat radius, const Texture sprite);
+					BallObject(const glm::vec2 pos, const GLfloat radius, const Texture sprite, const glm::vec2 vel = glm::vec2( 0.0f ) );
 					~BallObject();
 };
 

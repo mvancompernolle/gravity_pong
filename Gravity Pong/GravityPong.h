@@ -23,6 +23,7 @@
 #include "Missile.h"
 #include "Explosion.h"
 #include "player_selected.h"
+#include "LeechAttack.h"
 
 enum GameState {
 	GAME_ACTIVE,
@@ -41,7 +42,10 @@ enum Direction {
 enum PUNISHMENT_TYPE {
 	SLOW, 
 	SHRINK,
-	OBUSE
+	ABUSE, 
+	INVERSE,
+	TRAIL,
+	NUM_PUNISHMENTS
 };
 
 typedef std::tuple<GLboolean, Direction, glm::vec2> Collision;
@@ -75,9 +79,17 @@ struct Punishment {
 			timeLeft = 10.0f;
 			charges = 0;
 			break;
-		case OBUSE:
+		case ABUSE:
 			timeLeft = 0.0f;
 			charges = 3;
+			break;
+		case INVERSE:
+			timeLeft = 5.0f;
+			charges = 0;
+			break;
+		case TRAIL:
+			timeLeft = 15.0f;
+			charges = 15;
 			break;
 		}
 	}
@@ -90,8 +102,14 @@ struct Punishment {
 		case SHRINK:
 			return "Shrink";
 			break;
-		case OBUSE:
-			return "Obuse";
+		case ABUSE:
+			return "Abuse";
+			break;
+		case INVERSE:
+			return "Invrt";
+			break;
+		case TRAIL:
+			return "Trail";
 			break;
 		}
 	}
@@ -129,7 +147,7 @@ public:
 	const glm::vec2 PADDLE_SIZE;
 
 	// punishments
-	const GLfloat PUNISHMENT_COUNTDOWN = 20.0f;
+	const GLfloat PUNISHMENT_COUNTDOWN = 7.0f;
 	const GLfloat SHRINK_AMOUNT = 0.65;
 
 			GravityPong( GLuint width, GLuint height );
@@ -153,12 +171,14 @@ private:
 	std::list<Explosion>		explosions;
 	GravityBall					*p1ChargingGravBall, *p2ChargingGravBall;
 	Missile						*p1Missile, *p2Missile;
+	std::vector<LeechAttack>	leechAttacks;
 	GLfloat						p1MissileCooldown, p2MissileCooldown;
 	GLfloat						p1Energy, p2Energy;
 	glm::vec2					heightRange;
 	GLfloat						p1BounceCooldown, p2BounceCooldown;
 	GLfloat						nextPunishmentCountdown;
 	Punishment					punishment;
+	GLboolean					p1IsGravReversed, p2IsGravReversed;
 
 	GLboolean					checkRectRectCollision( const GameObject& one, const GameObject& two ) const;
 	GLboolean					checkBallBallCollision( const BallObject& one, const BallObject& two ) const;
