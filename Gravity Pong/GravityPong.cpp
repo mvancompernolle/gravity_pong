@@ -9,7 +9,8 @@ const float PI = 3.14159265358;
 GravityPong::GravityPong( GLuint width, GLuint height )
 	: Game( width, height ), state( GAME_OVER ), p1Lives( NUM_LIVES ), p2Lives( NUM_LIVES ), heightRange( 1.0f / 8.0f * height, height ), p1BounceCooldown( 0.0f ), p2BounceCooldown( 0.0f ),
 	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height * ( 7.5f / 8.0f ) ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
-	MISSILE_SIZE( height / 20.0f, height / 40.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), p1IsGravReversed( GL_FALSE ), p2IsGravReversed( GL_FALSE ) {
+	MISSILE_SIZE( height / 20.0f, height / 40.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), p1IsGravReversed( GL_FALSE ), p2IsGravReversed( GL_FALSE ), inRetroMode( GL_FALSE ),
+	LEECH_SPEED( width ){
 	init();
 }
 
@@ -84,6 +85,20 @@ void GravityPong::init() {
 }
 
 void GravityPong::processInput( const GLfloat dt ) {
+	if( keys[GLFW_KEY_SPACE] && !keysProcessed[GLFW_KEY_SPACE] ) {
+		keysProcessed[GLFW_KEY_SPACE] = GL_TRUE;
+		inRetroMode = !inRetroMode;
+	}
+
+	if( keys[GLFW_KEY_P] && !keysProcessed[GLFW_KEY_P] ) {
+		if( state == GAME_PAUSED ) {
+			state = GAME_ACTIVE;
+		} else if( state == GAME_ACTIVE ) {
+			state = GAME_PAUSED;
+		}
+		keysProcessed[GLFW_KEY_P] = GL_TRUE;
+	}
+
 	if( state == GAME_ACTIVE ) {
 		// movement keys
 		if( keys[GLFW_KEY_W] ) {
@@ -102,6 +117,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 		if( keys[GLFW_KEY_D] ) {
 			if( p1ChargingGravBall == nullptr && p1Energy >= GRAV_BALL_COST ) {
 				p1ChargingGravBall = new GravityBall( glm::vec2( player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), GRAV_BALL_COST * 0.5f );
+				p1ChargingGravBall->setReversed( p1IsGravReversed );
 				p1Energy -= GRAV_BALL_COST;
 			} else if( p1ChargingGravBall != nullptr ) {
 				p1ChargingGravBall->growBall( dt, p1Energy );
@@ -111,6 +127,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 		if( keys[GLFW_KEY_LEFT] ) {
 			if( p2ChargingGravBall == nullptr && p2Energy >= GRAV_BALL_COST ) {
 				p2ChargingGravBall = new GravityBall( glm::vec2( width - player2->size.x - GRAV_STARTING_RADIUS * 2.0f, player2->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), GRAV_BALL_COST * 0.5f );
+				p2ChargingGravBall->setReversed( p2IsGravReversed );
 				p2Energy -= GRAV_BALL_COST;
 			} else if( p2ChargingGravBall != nullptr ) {
 				p2ChargingGravBall->growBall( dt, p2Energy );
@@ -159,17 +176,17 @@ void GravityPong::processInput( const GLfloat dt ) {
 			}
 		}
 		// toggles between repulsion and gravity balls
-		if ( keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q] ) {
+		if( keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q] ) {
 			p1IsGravReversed = !p1IsGravReversed;
 			keysProcessed[GLFW_KEY_Q] = GL_TRUE;
 		}
-		if ( keys[GLFW_KEY_KP_1] && !keysProcessed[GLFW_KEY_KP_1] ) {
+		if( keys[GLFW_KEY_KP_1] && !keysProcessed[GLFW_KEY_KP_1] ) {
 			p2IsGravReversed = !p2IsGravReversed;
 			keysProcessed[GLFW_KEY_KP_1] = GL_TRUE;
 		}
 		// shoot leech
-		if ( keys[GLFW_KEY_C] && !keysProcessed[GLFW_KEY_C] ) {
-			if ( p1Energy >= LEECH_COST ) {
+		if( keys[GLFW_KEY_C] && !keysProcessed[GLFW_KEY_C] ) {
+			if( p1Energy >= LEECH_COST ) {
 				LeechAttack leech( glm::vec2( player1->pos.x + 1.5f * player1->size.x - LEECH_RADIUS, player1->getCenter().y - LEECH_RADIUS ),
 					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( LEECH_SPEED, 0.0f ) );
 				leechAttacks.push_back( leech );
@@ -177,8 +194,8 @@ void GravityPong::processInput( const GLfloat dt ) {
 				keysProcessed[GLFW_KEY_C] = GL_TRUE;
 			}
 		}
-		if ( keys[GLFW_KEY_RIGHT_CONTROL] && !keysProcessed[GLFW_KEY_RIGHT_CONTROL] ) {
-			if ( p2Energy >= LEECH_COST ) {
+		if( keys[GLFW_KEY_RIGHT_CONTROL] && !keysProcessed[GLFW_KEY_RIGHT_CONTROL] ) {
+			if( p2Energy >= LEECH_COST ) {
 				LeechAttack leech( glm::vec2( player2->pos.x - 0.5f * player2->size.x - LEECH_RADIUS, player1->getCenter().y - LEECH_RADIUS ),
 					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( -LEECH_SPEED, 0.0f ) );
 				leechAttacks.push_back( leech );
@@ -195,6 +212,9 @@ void GravityPong::processInput( const GLfloat dt ) {
 }
 
 void GravityPong::update( const GLfloat dt ) {
+	if( state == GAME_PAUSED )
+		return;
+
 	if( state == GAME_ACTIVE ) {
 
 		// give players energy
@@ -238,7 +258,7 @@ void GravityPong::update( const GLfloat dt ) {
 		}
 		particlesRenderer->update( dt );
 
-		for ( LeechAttack& leech : leechAttacks ) {
+		for( LeechAttack& leech : leechAttacks ) {
 			leech.update( dt );
 		}
 
@@ -274,6 +294,17 @@ void GravityPong::update( const GLfloat dt ) {
 }
 
 void GravityPong::render() {
+
+	if( !inRetroMode ) {
+		renderNormal();
+	} else {
+		glUseProgram( 0 );
+		renderRetro();
+	}
+
+}
+
+void GravityPong::renderNormal() {
 	// begin rendering to post processing quad
 	postEffectsRenderer->beginRender();
 
@@ -322,7 +353,7 @@ void GravityPong::render() {
 	player1->draw( *spriteRenderer );
 	player2->draw( *spriteRenderer );
 
-	for ( LeechAttack& leech : leechAttacks ) {
+	for( LeechAttack& leech : leechAttacks ) {
 		leech.draw( *spriteRenderer );
 	}
 
@@ -337,21 +368,58 @@ void GravityPong::render() {
 	postEffectsRenderer->endRender();
 	// render post processing quad
 	postEffectsRenderer->render( glfwGetTime() );
+}
 
-	if( state == GAME_ACTIVE || state == GAME_OVER ) {
-		std::stringstream ss;
-		ss << p1Lives;
-		textRenderer->renderText( "Lives: " + ss.str(), 5.0f, 5.0f, 1.0f );
-		ss.clear();
-		ss.str( std::string() );
-		ss << p2Lives;
-		textRenderer->renderText( "Lives: " + ss.str(), width - 130.0f, 5.0f, 1.0f );
+void GravityPong::renderRetro() {
+
+	// render gravity balls
+	if( p1ChargingGravBall != nullptr ) {
+		retroRenderer.renderGravityBall( *p1ChargingGravBall );
+	}
+	if( p2ChargingGravBall != nullptr ) {
+		retroRenderer.renderGravityBall( *p2ChargingGravBall );
+	}
+	for( GravityBall& gravBall : gravityBalls ) {
+		retroRenderer.renderGravityBall( gravBall );
+		if( gravBall.selectedBy == P1_SELECTED ) {
+			retroRenderer.renderPlayerSymbol( P1_SELECTED, gravBall.pos - gravBall.radius * 0.75f );
+		} else if( gravBall.selectedBy == P2_SELECTED ) {
+			retroRenderer.renderPlayerSymbol( P2_SELECTED, gravBall.pos - gravBall.radius * 0.75f );
+		}
 	}
 
-	if( state == GAME_OVER ) {
-		textRenderer->renderText( p1Lives == 0 ? "Player 2 won" : "Player 1 won", width / 2 - 80.0f, height / 2, 1.0f );
-		textRenderer->renderText( "Press ENTER to retry or ESC to quit", width / 2 - 170.0f, height / 2 + 20.0f, 0.75f );
+	// render missiles
+	if( p1Missile != nullptr ) {
+		retroRenderer.renderMissile( *p1Missile );
 	}
+	if( p2Missile != nullptr ) {
+		retroRenderer.renderMissile( *p2Missile );
+	}
+	// render particles
+	std::vector<Particle> particles = particlesRenderer->getParticles();
+	GLfloat radius = particlesRenderer->particleSize / 2.0f;
+	for( Particle& particle : particles ) {
+		if( particle.color.a > 0.5f && particle.life >= 0.0f) {
+			retroRenderer.renderCircle( particle.pos + radius, radius, 8 );
+		}
+	}
+
+	// render explosions
+	for( Explosion& explosion : explosions ) {
+		retroRenderer.renderCircle( explosion.getCenter(), explosion.radius, 20 );
+	}
+
+	// render leech attacks
+	for( LeechAttack& leech : leechAttacks ) {
+		retroRenderer.renderLeech( leech );
+	}
+
+	// rnder paddles and game ball
+	retroRenderer.renderGameBall( *ball );
+	retroRenderer.renderPaddle( *player1 );
+	retroRenderer.renderPaddle( *player2 );
+
+	renderGUIRetro();
 }
 
 void GravityPong::handleCollisions() {
@@ -420,31 +488,31 @@ void GravityPong::handleCollisions() {
 	}
 
 	// check for leech collisions
-	for ( LeechAttack& leech : leechAttacks ) {
-		if ( leech.LAUNCH_DIRECTION.x > 0 ) {
+	for( LeechAttack& leech : leechAttacks ) {
+		if( leech.LAUNCH_DIRECTION.x > 0 ) {
 			// player 1 launched the attack
-			if ( leech.vel.x > 0 ) {
+			if( leech.vel.x > 0 ) {
 				Collision collision = checkBallRectCollision( leech, *player2 );
-				if ( std::get<0>( collision ) ) {
+				if( std::get<0>( collision ) ) {
 					leech.attachLeech( player2 );
 				}
-			} else if ( leech.vel.x < 0 ) {
+			} else if( leech.vel.x < 0 ) {
 				Collision collision = checkBallRectCollision( leech, *player1 );
-				if ( std::get<0>( collision ) ) {
+				if( std::get<0>( collision ) ) {
 					leech.isAlive = GL_FALSE;
 					addEnergy( P1_SELECTED, leech.amountLeeched );
 				}
 			}
-		} else if ( leech.LAUNCH_DIRECTION.x < 0 ) {
+		} else if( leech.LAUNCH_DIRECTION.x < 0 ) {
 			// player 2 launched the attack
-			if ( leech.vel.x < 0 ) {
+			if( leech.vel.x < 0 ) {
 				Collision collision = checkBallRectCollision( leech, *player1 );
-				if ( std::get<0>( collision ) ) {
+				if( std::get<0>( collision ) ) {
 					leech.attachLeech( player1 );
 				}
-			} else if ( leech.vel.x > 0 ) {
+			} else if( leech.vel.x > 0 ) {
 				Collision collision = checkBallRectCollision( leech, *player2 );
-				if ( std::get<0>( collision ) ) {
+				if( std::get<0>( collision ) ) {
 					leech.isAlive = GL_FALSE;
 					addEnergy( P2_SELECTED, leech.amountLeeched );
 				}
@@ -658,6 +726,9 @@ void GravityPong::resetGame() {
 		p2Missile = nullptr;
 	}
 
+	// clear leeches
+	leechAttacks.clear();
+
 	// reset punishment
 	clearPunishment();
 }
@@ -688,7 +759,6 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 			// launch the gravity ball
 			p1ChargingGravBall->vel = glm::vec2( p1ChargingGravBall->speed, 0.0f );
 			p1ChargingGravBall->selectedBy = P1_SELECTED;
-			p1ChargingGravBall->setReversed( p1IsGravReversed );
 			gravityBalls.push_back( *p1ChargingGravBall );
 
 			delete p1ChargingGravBall;
@@ -703,8 +773,6 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 			// launch the gravity ball
 			p2ChargingGravBall->vel = glm::vec2( -p2ChargingGravBall->speed, 0.0f );
 			p2ChargingGravBall->selectedBy = P2_SELECTED;
-			p2ChargingGravBall->setReversed( p2IsGravReversed );
-			
 			gravityBalls.push_back( *p2ChargingGravBall );
 
 			delete p2ChargingGravBall;
@@ -811,6 +879,69 @@ void GravityPong::renderGUI() const {
 		textRenderer->renderText( ss.str(), pos.x + size.x / 20.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
 	}
 
+	// render player lives
+	ss.str( std::string() );
+	ss << p1Lives;
+	textRenderer->renderText( "Lives: " + ss.str(), 5.0f, 5.0f, 1.0f );
+	ss.str( std::string() );
+	ss << p2Lives;
+	textRenderer->renderText( "Lives: " + ss.str(), width - 130.0f, 5.0f, 1.0f );
+
+	if( state == GAME_OVER ) {
+		textRenderer->renderText( p1Lives == 0 ? "Player 2 won" : "Player 1 won", width / 2 - 80.0f, height / 2, 1.0f );
+		textRenderer->renderText( "Press ENTER to retry or ESC to quit", width / 2 - 170.0f, height / 2 + 20.0f, 0.75f );
+	}
+
+}
+
+void GravityPong::renderGUIRetro() const {
+	// draw gui border
+	retroRenderer.renderLine( glm::vec2( 0.0f, 0.97f * heightRange.x ), glm::vec2( width, 0.97f * heightRange.x ) );
+
+	// draw player energy bars
+	GLfloat offsetX = 0.10f, offsetY = 0.02f;
+	glm::vec2 pos = glm::vec2( offsetX * width, offsetY * height );
+	glm::vec2 size = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ) * ( (GLfloat)p1Energy / ( p1Energy + p2Energy ) ), height * 0.03f );
+	retroRenderer.renderRect( pos, pos + size );
+
+	glm::vec2 pos2 = glm::vec2( pos.x + size.x, offsetY * height );
+	glm::vec2 size2 = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ) * ( (GLfloat)p2Energy / ( p1Energy + p2Energy ) ), height * 0.03f );
+	retroRenderer.renderRect( pos2, pos2 + size2 );
+
+	// draw player lives in tally markers
+	GLfloat startX = pos.x * 0.25f, endX = pos.x * 0.75;
+	GLfloat distBetween = ( endX - startX ) / NUM_LIVES;
+	for( int i = 0; i < p1Lives; ++i, startX += distBetween ) {
+		retroRenderer.renderLine( glm::vec2( startX, pos.y ), glm::vec2( startX, pos.y + size.y ) );
+	}
+
+	startX = width - ( pos.x * 0.75f );
+	endX = width - ( pos.x * 0.25f );
+	distBetween = ( endX - startX ) / NUM_LIVES;
+	for( int i = p2Lives; i > 0; --i, endX -= distBetween ) {
+		retroRenderer.renderLine( glm::vec2( endX, pos.y ), glm::vec2( endX, pos.y + size.y ) );
+	}
+
+	// draw punishment notification
+	offsetX = 0.40f;
+	pos = glm::vec2( offsetX * width, pos.y + size.y + heightRange.x * 0.03f );
+	size = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ), 0.5f * heightRange.x );
+	retroRenderer.renderRect(pos, pos+size);
+
+	if( nextPunishmentCountdown > 0.0f ) {
+		pos = glm::vec2( pos.x + size.x * 0.05f, pos.y + size.y * 0.3f );
+		// draw punishment countdown
+		retroRenderer.renderRect( glm::vec2( pos ), glm::vec2( pos.x + size.x * 0.9f * (nextPunishmentCountdown / PUNISHMENT_COUNTDOWN), pos.y + size.y * 0.6f ) );
+	} else {
+		if( punishment.charges > 0 ) {
+			// draw tallies
+		} else {
+		}
+	}
+
+	if( state == GAME_OVER ) {
+		retroRenderer.renderEnter( glm::vec2( width / 2.0f, ( heightRange.y + heightRange.x ) / 3.0f ), glm::vec2( width / 5.0f, ( heightRange.y + heightRange.x ) / 10.0f ) );
+	}
 }
 
 void GravityPong::unselectGravBall( const PLAYER_SELECTED player ) {
@@ -860,7 +991,7 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 		if( punishment.timeLeft > 0.0f ) {
 			punishment.timeLeft -= dt;
 
-			if ( punishment.type == TRAIL && punishment.charges >= (int) punishment.timeLeft + 1) {
+			if( punishment.type == TRAIL && punishment.charges >= (int)punishment.timeLeft + 1 ) {
 				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 100.0f );
 				gravBall.isCollapsing = GL_TRUE;
 				gravBall.color = glm::vec3( 1.0f );
@@ -1020,29 +1151,29 @@ void GravityPong::deleteMissile( Missile*& missile ) {
 	missile = nullptr;
 }
 
-void GravityPong::addEnergy( PLAYER_SELECTED player, GLfloat energy ){
+void GravityPong::addEnergy( PLAYER_SELECTED player, GLfloat energy ) {
 
 	const PaddleObject* plr;
-	if ( player == P1_SELECTED ) {
+	if( player == P1_SELECTED ) {
 		plr = player1;
-	} else if ( player == P2_SELECTED ) {
+	} else if( player == P2_SELECTED ) {
 		plr = player2;
 	} else {
 		return;
 	}
 
 	// check to see if leach attached to player 1
-	for ( int i = 0; i < leechAttacks.size() && energy > 0; ++i ) {
+	for( int i = 0; i < leechAttacks.size() && energy > 0; ++i ) {
 		LeechAttack& leech = leechAttacks[i];
-		if ( leech.attachedTo == plr ) {
+		if( leech.attachedTo == plr ) {
 			// give energy to leech and any left overs to the player
 			energy = leech.addEnergy( energy );
 		}
 	}
 
-	if ( player == P1_SELECTED ) {
+	if( player == P1_SELECTED ) {
 		p1Energy += energy;
-	} else if ( player == P2_SELECTED ) {
+	} else if( player == P2_SELECTED ) {
 		p2Energy += energy;
 	}
 }

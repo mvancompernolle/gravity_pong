@@ -17,7 +17,7 @@ public:
 	glm::vec2			offset;
 	GLboolean			isAlive;
 
-						LeechAttack( glm::vec2 pos, GLfloat radius, Texture sprite, glm::vec2 dir, GLfloat leechAmount = 300.0f, GLfloat duration = 5.0f );
+						LeechAttack( glm::vec2 pos, GLfloat radius, Texture sprite, glm::vec2 dir, GLfloat leechAmount = 300.0f, GLfloat duration = 8.0f );
 						~LeechAttack();
 	void				update( const GLfloat dt );
 	void				attachLeech( const GameObject* object );

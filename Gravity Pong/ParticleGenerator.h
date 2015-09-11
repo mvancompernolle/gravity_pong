@@ -29,6 +29,7 @@ public:
 	void					addParticles( GameObject object, GLuint newParticles, glm::vec2 offset = glm::vec2( 0.0f, 0.0f ), GLfloat rotation = 0.0f);
 	void					update( GLfloat dt );
 	void					draw();
+	std::vector<Particle>	getParticles() const;
 
 private:
 	std::vector<Particle>	particles;

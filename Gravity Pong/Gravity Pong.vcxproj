@@ -39,8 +39,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\matthew.vancompernol\Documents\OpenGL_libs\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\matthew.vancompernol\Documents\OpenGL_libs\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Matt\Documents\OpenGL_libs\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Matt\Documents\OpenGL_libs\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,6 +97,7 @@
     <ClCompile Include="ParticleGenerator.cpp" />
     <ClCompile Include="PostProcessor.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="RetroRenderer.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="TextRenderer.cpp" />
@@ -117,6 +118,7 @@
     <ClInclude Include="player_selected.h" />
     <ClInclude Include="PostProcessor.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="RetroRenderer.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SpriteRenderer.h" />
     <ClInclude Include="TextRenderer.h" />

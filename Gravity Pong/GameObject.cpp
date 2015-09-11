@@ -34,7 +34,6 @@ void GameObject::getVertices( glm::vec2 vertices[4] ) const {
 	if( rotation != 0.0f ) {
 		GLfloat tmpX, tmpY;
 		GLfloat rot = glm::radians(rotation);
-		rot *= ( PI / 180.0f );
 		for( int i = 0; i < 4; ++i ) {
 			// translate point with respect to origin
 			vertices[i] -= getCenter();

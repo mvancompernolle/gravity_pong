@@ -20,9 +20,9 @@ int main( int argc, char* argv[] ) {
 	// initialize glfw
 	GLFWwindow* window = nullptr;
 	glfwInit();
-	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
+	/*glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 4 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
-	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
+	//glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );*/
 	glfwWindowHint( GLFW_RESIZABLE, GL_FALSE );
 
 	if( FULL_SCREEN ) {
@@ -39,6 +39,7 @@ int main( int argc, char* argv[] ) {
 		window = glfwCreateWindow( SCREEN_WIDTH, SCREEN_HEIGHT, "Gravity Pong", nullptr, nullptr );
 	}
 	glfwMakeContextCurrent( window );
+	glfwSwapInterval( 1 );
 	
 
 	glewExperimental = GL_TRUE;
@@ -60,6 +61,8 @@ int main( int argc, char* argv[] ) {
 
 	// time variables
 	GLfloat dt = 0.0f, lastTime = 0.0f;
+
+	RetroRenderer renderer;
 
 	// start the game within the menu state
 	while( !glfwWindowShouldClose( window ) ) {
@@ -83,6 +86,7 @@ int main( int argc, char* argv[] ) {
 		// render the game
 		glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 		glClear( GL_COLOR_BUFFER_BIT );
+
 		game->render();
 
 		glfwSwapBuffers( window );
@@ -92,6 +96,7 @@ int main( int argc, char* argv[] ) {
 
 	//system( "pause" );
 
+	glfwDestroyWindow( window );
 	glfwTerminate();
 	return 0;
 }

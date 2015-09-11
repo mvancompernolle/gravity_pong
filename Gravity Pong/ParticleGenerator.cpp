@@ -111,3 +111,7 @@ void ParticleGenerator::respawnParticle( Particle& particle, const GameObject& o
 	particle.vel = object.vel * 0.1f;
 	particle.rotation = rotation;
 }
+
+std::vector<Particle> ParticleGenerator::getParticles() const {
+	return particles;
+}

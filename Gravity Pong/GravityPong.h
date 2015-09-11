@@ -13,6 +13,7 @@
 
 #include "Game.h"
 #include "SpriteRenderer.h"
+#include "RetroRenderer.h"
 #include "PostProcessor.h"
 #include "ParticleGenerator.h"
 #include "TextRenderer.h"
@@ -88,8 +89,8 @@ struct Punishment {
 			charges = 0;
 			break;
 		case TRAIL:
-			timeLeft = 15.0f;
-			charges = 15;
+			timeLeft = 10.0f;
+			charges = 10;
 			break;
 		}
 	}
@@ -140,7 +141,7 @@ public:
 
 	// leech
 	const GLfloat LEECH_RADIUS = 20.0f;
-	const GLfloat LEECH_SPEED = 1920.0f;
+	const GLfloat LEECH_SPEED;
 	const GLuint LEECH_COST = 200.0f;
 
 	// player
@@ -163,8 +164,10 @@ public:
 	void	render();
 
 private:
+	GLboolean					inRetroMode;
 	GameState					state;
 	SpriteRenderer*				spriteRenderer;
+	RetroRenderer				retroRenderer;
 	PostProcessor*				postEffectsRenderer;
 	ParticleGenerator*			particlesRenderer;
 	TextRenderer*				textRenderer;
@@ -185,6 +188,10 @@ private:
 	Punishment					punishment;
 	GLboolean					p1IsGravReversed, p2IsGravReversed;
 
+	void						renderNormal( );
+	void						renderRetro( );
+	void						renderGUIRetro() const;
+	void						renderGUI() const;
 	GLboolean					checkRectRectCollision( const GameObject& one, const GameObject& two ) const;
 	GLboolean					checkBallBallCollision( const BallObject& one, const BallObject& two ) const;
 	Collision					checkBallRectCollision( const BallObject& one, const GameObject& two ) const;
@@ -194,7 +201,6 @@ private:
 	void						resolveBallPlayerCollision( BallObject& ball, const PaddleObject player, const int num );
 	void						resetGame();
 	void						updateGravityBalls( const GLfloat dt );
-	void						renderGUI() const;
 	void						unselectGravBall( const PLAYER_SELECTED player );
 	GravityBall*				findSelectedGravBall( const PLAYER_SELECTED player );
 	void						handleCooldowns( const GLfloat dt );

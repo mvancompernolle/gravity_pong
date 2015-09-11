@@ -48,8 +48,8 @@ GLfloat LeechAttack::addEnergy( const GLfloat energy ){
 
 	// calculate radius based on energy
 	radius = STARTING_RADIUS + ( amountLeeched / MAX_LEECH_AMOUNT ) * ( MAX_RADIUS - STARTING_RADIUS );
-	size = glm::vec2( radius * 2.0f );
 	pos = getCenter() - radius;
+	size = glm::vec2( radius * 2.0f );
 
 	if ( attachedTo != nullptr ) {
 		offset = attachedTo->pos - pos;
