@@ -25,6 +25,7 @@
 #include "Explosion.h"
 #include "player_selected.h"
 #include "LeechAttack.h"
+#include "GrappleAttack.h"
 
 enum GameState {
 	GAME_ACTIVE,
@@ -144,6 +145,14 @@ public:
 	const GLfloat LEECH_SPEED;
 	const GLuint LEECH_COST = 200.0f;
 
+	// grapple
+	const GLfloat GRAPPLE_ANCHOR_RADIUS = 15.0f;
+	const GLfloat GRAPPLE_LINK_WIDTH = 10.0f;
+	const GLfloat GRAPPLE_SPEED = 1000.0f;
+	const GLfloat GRAPPLE_COST = 500.0f;
+	const GLfloat GRAPPLE_DURATION = 5.0f;
+	const GLfloat GRAPPLE_PULL_STRENGTH = 10.0f;
+
 	// player
 	const GLuint ENERGY_PER_SECOND = 25;
 	const GLuint NUM_LIVES = 5;
@@ -179,6 +188,7 @@ private:
 	std::list<Explosion>		explosions;
 	GravityBall					*p1ChargingGravBall, *p2ChargingGravBall;
 	Missile						*p1Missile, *p2Missile;
+	GrappleAttack				*p1Grapple, *p2Grapple;
 	std::vector<LeechAttack>	leechAttacks;
 	GLfloat						p1MissileCooldown, p2MissileCooldown;
 	GLfloat						p1Energy, p2Energy;

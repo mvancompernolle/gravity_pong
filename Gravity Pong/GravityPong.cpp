@@ -8,7 +8,7 @@ const float PI = 3.14159265358;
 
 GravityPong::GravityPong( GLuint width, GLuint height )
 	: Game( width, height ), state( GAME_OVER ), p1Lives( NUM_LIVES ), p2Lives( NUM_LIVES ), heightRange( 1.0f / 8.0f * height, height ), p1BounceCooldown( 0.0f ), p2BounceCooldown( 0.0f ),
-	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height * ( 7.5f / 8.0f ) ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
+	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
 	MISSILE_SIZE( height / 20.0f, height / 40.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), p1IsGravReversed( GL_FALSE ), p2IsGravReversed( GL_FALSE ), inRetroMode( GL_FALSE ),
 	LEECH_SPEED( width ){
 	init();
@@ -49,6 +49,8 @@ void GravityPong::init() {
 	ResourceManager::loadTexture( "explosion.png", GL_TRUE, "explosion" );
 	ResourceManager::loadTexture( "smoke.png", GL_TRUE, "smoke" );
 	ResourceManager::loadTexture( "leech.png", GL_TRUE, "leech" );
+	ResourceManager::loadTexture( "anchor.png", GL_TRUE, "anchor" );
+	ResourceManager::loadTexture( "link.png", GL_FALSE, "link" );
 	ResourceManager::loadTexture( "black_color.png", GL_FALSE, "black" );
 	ResourceManager::loadTexture( "green_color.png", GL_FALSE, "green" );
 	ResourceManager::loadTexture( "light_blue_color.png", GL_FALSE, "light_blue" );
@@ -57,9 +59,9 @@ void GravityPong::init() {
 
 	// create player paddles
 	glm::vec2 playerPos = glm::vec2( 0.0f, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
-	player1 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec3( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
+	player1 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec4( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
 	playerPos = glm::vec2( width - PADDLE_SIZE.x, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
-	player2 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec3( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
+	player2 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec4( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
 
 	// create ball
 	GLuint radius = ( heightRange.y - heightRange.x ) / 50.0f;
@@ -155,7 +157,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 			if( p1Missile == nullptr && p1Energy >= MISSILE_COST && p1MissileCooldown <= 0.0f ) {
 				p1Missile = new Missile( glm::vec2( player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "missile" ), ball );
 				p1Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
-				p1Missile->color = glm::vec3( 0.5f, 1.0f, 0.5f );
+				p1Missile->color = glm::vec4( 0.5f, 1.0f, 0.5f, 1.0f );
 				p1Energy -= MISSILE_COST;
 				keysProcessed[GLFW_KEY_E] = GL_TRUE;
 			} else if( p1Missile != nullptr && !keysProcessed[GLFW_KEY_E] ) {
@@ -167,7 +169,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 			if( p2Missile == nullptr && p2Energy >= MISSILE_COST && p2MissileCooldown <= 0.0f ) {
 				p2Missile = new Missile( glm::vec2( player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "missile" ), ball, 180.0f );
 				p2Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
-				p2Missile->color = glm::vec3( 0.5f, 0.7f, 1.0f );
+				p2Missile->color = glm::vec4( 0.5f, 0.7f, 1.0f, 1.0f );
 				p2Energy -= MISSILE_COST;
 				keysProcessed[GLFW_KEY_KP_0] = GL_TRUE;
 			} else if( p2Missile != nullptr && !keysProcessed[GLFW_KEY_KP_0] ) {
@@ -201,6 +203,21 @@ void GravityPong::processInput( const GLfloat dt ) {
 				leechAttacks.push_back( leech );
 				p2Energy -= LEECH_COST;
 				keysProcessed[GLFW_KEY_RIGHT_CONTROL] = GL_TRUE;
+			}
+		}
+		// grapple attack
+		if( keys[GLFW_KEY_F] && p1Grapple == nullptr ) {
+			if( p1Energy >= GRAPPLE_COST ) {
+				glm::vec2 pos = glm::vec2( player1->getCenter().x + player1->size.x / 2.0f - GRAPPLE_ANCHOR_RADIUS, player1->getCenter().y - GRAPPLE_ANCHOR_RADIUS );
+				p1Grapple = new GrappleAttack( player1, player2, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2( GRAPPLE_SPEED, 0.0f ), width, GRAPPLE_DURATION );
+				p1Energy -= GRAPPLE_COST;
+			}
+		}
+		if( keys[GLFW_KEY_RIGHT_SHIFT] && p2Grapple == nullptr ) {
+			if( p2Energy >= GRAPPLE_COST ) {
+				glm::vec2 pos = glm::vec2( player2->pos.x - GRAPPLE_ANCHOR_RADIUS, player2->getCenter().y - GRAPPLE_ANCHOR_RADIUS );
+				p2Grapple = new GrappleAttack( player2, player1, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2( -GRAPPLE_SPEED, 0.0f ), width, GRAPPLE_DURATION );
+				p2Energy -= GRAPPLE_COST;
 			}
 		}
 	} else if( state == GAME_OVER ) {
@@ -257,6 +274,13 @@ void GravityPong::update( const GLfloat dt ) {
 			particlesRenderer->addParticles( *p2Missile, 3, glm::vec2( tmpX, tmpY ) );
 		}
 		particlesRenderer->update( dt );
+
+		if( p1Grapple != nullptr ) {
+			p1Grapple->update( dt );
+		}
+		if( p2Grapple != nullptr ) {
+			p2Grapple->update( dt );
+		}
 
 		for( LeechAttack& leech : leechAttacks ) {
 			leech.update( dt );
@@ -347,6 +371,13 @@ void GravityPong::renderNormal() {
 	}
 	if( p2Missile != nullptr ) {
 		p2Missile->draw( *spriteRenderer );
+	}
+
+	if( p1Grapple != nullptr ) {
+		p1Grapple->draw( *spriteRenderer );
+	}
+	if( p2Grapple != nullptr ) {
+		p2Grapple->draw( *spriteRenderer );
 	}
 
 	ball->draw( *spriteRenderer );
@@ -524,6 +555,28 @@ void GravityPong::handleCollisions() {
 	leechAttacks.erase( std::remove_if( leechAttacks.begin(), leechAttacks.end(), [&]( const LeechAttack& leech ) {
 		return ( ( leech.pos.x < -leech.size.x ) || ( leech.pos.x > width ) || !leech.isAlive );
 	} ), leechAttacks.end() );
+
+	// check for grapple collision with target
+	if( p1Grapple != nullptr && p1Grapple->isAlive ) {
+		Collision collision = checkBallRectCollision( p1Grapple->anchors[GrappleAttack::NUM_ANCHORS-1], *p1Grapple->target );
+		if( std::get<0>( collision ) ) {
+			p1Grapple->attachToTarget();
+		}
+	} else if( p1Grapple != nullptr ) {
+		// delete grapple
+		delete p1Grapple;
+		p1Grapple = nullptr;
+	}
+	if( p2Grapple != nullptr && p2Grapple->isAlive ) {
+		Collision collision = checkBallRectCollision( p2Grapple->anchors[GrappleAttack::NUM_ANCHORS - 1], *p2Grapple->target );
+		if( std::get<0>( collision ) ) {
+			p2Grapple->attachToTarget();
+		}
+	} else if( p2Grapple != nullptr ) {
+		// delete grapple
+		delete p2Grapple;
+		p2Grapple = nullptr;
+	}
 
 
 	// handle gravity ball player collisions
@@ -798,18 +851,18 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 
 void GravityPong::renderGUI() const {
 	// draw gui background
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "black" ), glm::vec2( 0.0f ), glm::vec2( width, heightRange.x ), 0.0f, glm::vec3( 1.0f ) );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "light_blue" ), glm::vec2( 0.0f, 0.97f * heightRange.x ), glm::vec2( width, 0.03 * heightRange.x ), 0.0f, glm::vec3( 1.0f ) );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "black" ), glm::vec2( 0.0f ), glm::vec2( width, heightRange.x ), 0.0f );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "light_blue" ), glm::vec2( 0.0f, 0.97f * heightRange.x ), glm::vec2( width, 0.03 * heightRange.x ), 0.0f );
 
 	// draw player energy bars
 	GLfloat offsetX = 0.10f, offsetY = 0.02f;
 	glm::vec2 pos = glm::vec2( offsetX * width, offsetY * height );
 	glm::vec2 size = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ) * ( (GLfloat)p1Energy / ( p1Energy + p2Energy ) ), height * 0.03f );
 
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "green" ), pos, size, 0.0f, glm::vec3( 0.75f ) );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "green" ), pos, size, 0.0f, glm::vec4( glm::vec3(0.75f), 1.0f ) );
 	glm::vec2 pos2 = glm::vec2( pos.x + size.x, offsetY * height );
 	glm::vec2 size2 = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ) * ( (GLfloat)p2Energy / ( p1Energy + p2Energy ) ), height * 0.03f );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "light_blue" ), pos2, size2, 0.0f, glm::vec3( 0.75f ) );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "light_blue" ), pos2, size2, 0.0f, glm::vec4( glm::vec3( 0.75f ), 1.0f ) );
 
 	// draw player energy text
 	std::stringstream ss;
@@ -823,9 +876,9 @@ void GravityPong::renderGUI() const {
 	offsetX = 0.40f;
 	pos = glm::vec2( offsetX * width, pos.y + size.y + heightRange.x * 0.03f );
 	size = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ), 0.5f * heightRange.x );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "red" ), pos, size, 0.0f, glm::vec3( 0.75f ) );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "red" ), pos, size, 0.0f, glm::vec4( glm::vec3( 0.75f ), 1.0f ) );
 	size.y = 0.3f * size.y;
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f, glm::vec3( 0.75f ) );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f, glm::vec4( glm::vec3( 0.75f ), 1.0f ) );
 	textRenderer->renderText( "Punishment", width / 2.0f - 0.03f * width, pos.y + 0.01f * heightRange.x, 1.0f, glm::vec3( 0.0f ) );
 
 	if( nextPunishmentCountdown > 0.0f ) {
@@ -841,14 +894,14 @@ void GravityPong::renderGUI() const {
 		size.y = 0.32f * heightRange.x;
 
 		// draw which player is selected
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f, glm::vec3( 1.0f ) );
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f );
 		ss.str( std::string() );
 		ss << (GLint)punishment.player + 1;
 		textRenderer->renderText( "P" + ss.str(), pos.x + size.x / 3.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
 
 		// draw what the punishment is
 		pos.x += 0.074 * width;
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f, glm::vec3( 1.0f ) );
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f );
 		switch( punishment.type ) {
 		case SLOW:
 			textRenderer->renderText( "SLOW", pos.x + size.x / 20.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
@@ -869,7 +922,7 @@ void GravityPong::renderGUI() const {
 
 		// draw its duration
 		pos.x += 0.074 * width;
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f, glm::vec3( 1.0f ) );
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f );
 		ss.str( std::string() );
 		if( punishment.charges > 0 ) {
 			ss << "C:" << punishment.charges;
@@ -994,7 +1047,7 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 			if( punishment.type == TRAIL && punishment.charges >= (int)punishment.timeLeft + 1 ) {
 				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 100.0f );
 				gravBall.isCollapsing = GL_TRUE;
-				gravBall.color = glm::vec3( 1.0f );
+				gravBall.color = glm::vec4( 1.0f );
 				gravityBalls.push_back( gravBall );
 				punishment.charges--;
 			}

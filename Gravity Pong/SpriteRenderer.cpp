@@ -9,7 +9,7 @@ SpriteRenderer::~SpriteRenderer() {
 	glDeleteVertexArrays(1, &VAO);
 }
 
-void SpriteRenderer::drawSprite(Texture& texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec3 color) {
+void SpriteRenderer::drawSprite( Texture& texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec4 color) {
 	shader.use();
 	glm::mat4 model;
 
@@ -29,7 +29,7 @@ void SpriteRenderer::drawSprite(Texture& texture, glm::vec2 position, glm::vec2 
 	shader.setMatrix4("model", model);
 
 	// render the sprite
-	shader.setVector3f("spriteColor", color);
+	shader.setVector4f("spriteColor", color);
 	glActiveTexture(GL_TEXTURE0);
 	texture.bind();
 
@@ -38,10 +38,10 @@ void SpriteRenderer::drawSprite(Texture& texture, glm::vec2 position, glm::vec2 
 	glBindVertexArray(0);
 }
 
-void SpriteRenderer::drawSprite( Texture& texture, glm::mat4 model, glm::vec3 color ){
+void SpriteRenderer::drawSprite( Texture& texture, glm::mat4 model, glm::vec4 color ) {
 	shader.use();
 	shader.setMatrix4( "model", model );
-	shader.setVector3f( "spriteColor", color );
+	shader.setVector4f( "spriteColor", color );
 	glActiveTexture( GL_TEXTURE0 );
 	texture.bind();
 

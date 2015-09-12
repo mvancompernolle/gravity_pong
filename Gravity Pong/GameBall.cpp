@@ -36,12 +36,12 @@ void GameBall::update( const GLfloat dt, const glm::vec2 heightRange ) {
 
 	if ( isLaunching ) {
 		launchDT -= dt;
-		color = glm::vec3( std::sin( launchDT * 10 ), 0.3f, 0.3f );
+		color = glm::vec4( std::sin( launchDT * 10 ), 0.3f, 0.3f, 1.0f );
 		if ( launchDT <= 0 ) {
 			isLaunching = GL_FALSE;
 			launchDT = 0.0f;
 			vel = glm::vec2( speed * cos( dir ), speed * sin( dir ) );
-			color = glm::vec3( 1.0f );
+			color = glm::vec4( 1.0f );
 		}
 	}
 }
@@ -51,7 +51,7 @@ void GameBall::reset( glm::vec2 position, glm::vec2 velocity ) {
 	this->vel = velocity;
 	isLaunching = GL_FALSE;
 	launchDT = 0.0f;
-	color = glm::vec3( 1.0f );
+	color = glm::vec4( 1.0f );
 }
 
 void GameBall::startLaunch( const PLAYER_SELECTED selected ) {

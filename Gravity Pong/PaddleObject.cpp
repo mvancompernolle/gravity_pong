@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-PaddleObject::PaddleObject( const glm::vec2 pos, const glm::vec2 size, const glm::vec3 color, const Texture sprite, const GLfloat speed )
+PaddleObject::PaddleObject( const glm::vec2 pos, const glm::vec2 size, const glm::vec4 color, const Texture sprite, const GLfloat speed )
 	: GameObject( pos, size, sprite, color ), stunnedTimer( 0.0f ), speed( speed ) {
 }
 

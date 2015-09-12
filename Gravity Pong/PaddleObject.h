@@ -19,7 +19,7 @@ class PaddleObject : public GameObject {
 public:
 	GLfloat		stunnedTimer, speed;
 
-				PaddleObject( const glm::vec2 pos, const glm::vec2 size, const glm::vec3 color, const Texture sprite, const GLfloat speed = 1000.0f );
+				PaddleObject( const glm::vec2 pos, const glm::vec2 size, const glm::vec4 color, const Texture sprite, const GLfloat speed = 1000.0f );
 				~PaddleObject();
 	void		move( const PaddleDirection dir );
 	void		update( const GLfloat dt, const glm::vec2 heightRange );

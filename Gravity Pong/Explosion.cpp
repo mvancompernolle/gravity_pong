@@ -16,6 +16,6 @@ void Explosion::update( const GLfloat dt ) {
 		radius -= SHRINK_RATE * dt;
 		size = glm::vec2( radius * 2 );
 		pos += SHRINK_RATE * dt;
-		color = glm::vec3( radius / MAX_RADIUS );
+		color = glm::vec4( glm::vec3( radius / MAX_RADIUS ), 1.0f );
 	}
 }

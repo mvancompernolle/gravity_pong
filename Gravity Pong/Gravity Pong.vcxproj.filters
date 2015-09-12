@@ -45,29 +45,35 @@
     <Image Include="arrow_green.png">
       <Filter>Resource Files\images</Filter>
     </Image>
-    <Image Include="explosion.png">
-      <Filter>Resource Files</Filter>
+    <Image Include="anchor.png">
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="black_color.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="explosion.png">
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="green_color.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
-    <Image Include="missile.png">
-      <Filter>Resource Files</Filter>
+    <Image Include="leech.png">
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="light_blue_color.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="missile.png">
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="red_color.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="smoke.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="white_color.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -128,6 +134,9 @@
     <ClCompile Include="RetroRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GrappleAttack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BallObject.h">
@@ -185,6 +194,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RetroRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GrappleAttack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

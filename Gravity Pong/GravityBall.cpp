@@ -5,7 +5,6 @@
 GravityBall::GravityBall( const glm::vec2 pos, const GLfloat radius, const Texture sprite, GLfloat energyCost, GLfloat speed, GLfloat maxRadius, GLfloat growthRate )
 	: BallObject( pos, radius, sprite ), speed( speed ), MIN_RADIUS( radius ), MAX_RADIUS( radius * 2 ), GROWTH_RATE( growthRate ), ENERGY_TO_MAX( energyCost ), selectedBy( NO_ONE ),
 	isCollapsing( GL_FALSE ), isReversed( GL_FALSE ) {
-	color = glm::vec3( 0.0f, 0.0f, 1.0f );
 }
 
 
@@ -66,8 +65,8 @@ void GravityBall::pullObject( const GLfloat dt, GameObject& object ) const {
 void GravityBall::setReversed( const GLboolean reverse ) {
 	this->isReversed = reverse;
 	if ( isReversed ) {
-		color = glm::vec3( 1.0f, 1.0f, 0.0f );
+		color = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
 	} else {
-		color = glm::vec3( 1.0f, 1.0f, 1.0f );
+		color = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
 	}
 }

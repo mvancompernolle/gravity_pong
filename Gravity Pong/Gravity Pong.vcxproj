@@ -75,7 +75,9 @@
     <Image Include="explosion.png" />
     <Image Include="gravity_ball.png" />
     <Image Include="green_color.png" />
+    <Image Include="leech.png" />
     <Image Include="light_blue_color.png" />
+    <Image Include="anchor.png" />
     <Image Include="missile.png" />
     <Image Include="paddle.png" />
     <Image Include="red_color.png" />
@@ -88,6 +90,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameBall.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GrappleAttack.cpp" />
     <ClCompile Include="GravityBall.cpp" />
     <ClCompile Include="GravityPong.cpp" />
     <ClCompile Include="LeechAttack.cpp" />
@@ -109,6 +112,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameBall.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GrappleAttack.h" />
     <ClInclude Include="GravityBall.h" />
     <ClInclude Include="GravityPong.h" />
     <ClInclude Include="LeechAttack.h" />

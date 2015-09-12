@@ -12,13 +12,13 @@
 class GameObject {
 public:
 	glm::vec2 pos, size, vel;
-	glm::vec3 color;
+	glm::vec4 color;
 	GLfloat rotation, mass;
 	GLboolean isSolid, isDestroyed;
 	Texture sprite;
 
 	GameObject();
-	GameObject( glm::vec2 pos, glm::vec2 size, Texture sprite, glm::vec3 color = glm::vec3( 1.0f ), glm::vec2 vel = glm::vec2( 0.0f ) );
+	GameObject( glm::vec2 pos, glm::vec2 size, Texture sprite, glm::vec4 color = glm::vec4( 1.0f ), glm::vec2 vel = glm::vec2( 0.0f ) );
 	~GameObject();
 
 	glm::vec2 getCenter() const;
