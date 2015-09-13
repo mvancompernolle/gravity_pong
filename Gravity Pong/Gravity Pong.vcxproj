@@ -72,15 +72,27 @@
     <Image Include="background.jpg" />
     <Image Include="black_color.png" />
     <Image Include="character.png" />
+    <Image Include="energy.png" />
     <Image Include="explosion.png" />
     <Image Include="gravity_ball.png" />
     <Image Include="green_color.png" />
+    <Image Include="gui_background.jpg" />
+    <Image Include="gui_background.png" />
+    <Image Include="gui_background_backup.png" />
     <Image Include="leech.png" />
+    <Image Include="life.png" />
     <Image Include="light_blue_color.png" />
     <Image Include="anchor.png" />
+    <Image Include="link.png" />
+    <Image Include="l_side_punishment_panel.png" />
     <Image Include="missile.png" />
     <Image Include="paddle.png" />
+    <Image Include="punishment_template.png" />
+    <Image Include="purple_color.png" />
     <Image Include="red_color.png" />
+    <Image Include="r_side_punishment_panel.png" />
+    <Image Include="side_punishment_panel.png" />
+    <Image Include="slow_punishment.png" />
     <Image Include="smoke.png" />
     <Image Include="white_color.png" />
   </ItemGroup>
