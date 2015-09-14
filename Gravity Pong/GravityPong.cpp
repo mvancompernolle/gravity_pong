@@ -878,12 +878,20 @@ void GravityPong::renderGUI() const {
 	glm::vec2 pos = glm::vec2( offsetX, offsetY );
 	glm::vec2 size = glm::vec2( totalSize.x * ( (GLfloat)p1Energy / ( p1Energy + p2Energy ) ), totalSize.y );
 
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "energy" ), pos, size, 0.0f, glm::vec4( 0.57f, 0.80f, 0.97f, 1.0f ) );
-
-	// draw gui background
 	glm::vec2 pos2 = glm::vec2( pos.x + size.x, offsetY );
 	glm::vec2 size2 = glm::vec2( totalSize.x * ( (GLfloat)p2Energy / ( p1Energy + p2Energy ) ), totalSize.y );
 	spriteRenderer->drawSprite( ResourceManager::getTexture( "energy" ), pos2, size2, 0.0f, glm::vec4( 0.52f, 0.43f, 0.85f, 1.0f ) );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "energy" ), pos, size, 0.0f, glm::vec4( 0.57f, 0.80f, 0.97f, 1.0f ) );
+
+	// draw player energy text
+	std::stringstream ss;
+	ss << (GLuint)p1Energy;
+	textRenderer->renderText( ss.str(), pos.x + width * 0.01f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
+	ss.str( std::string() );
+	ss << (GLuint)p2Energy;
+	textRenderer->renderText( ss.str(), pos2.x + size2.x - width * 0.06f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
+
+	// draw gui background
 	spriteRenderer->drawSprite( ResourceManager::getTexture( "gui_background" ), glm::vec2( 0.0f ), glm::vec2( width, .15 * height ), 0.0f );
 
 	// draw red punishment marker
@@ -938,7 +946,6 @@ void GravityPong::renderGUI() const {
 	}
 
 	// draw punishment countdown
-	std::stringstream ss;
 	if( nextPunishmentCountdown > 0.0f ) {
 		// draw punishment countdown
 		ss.str( std::string() );
@@ -952,7 +959,7 @@ void GravityPong::renderGUI() const {
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
 		} else if( p1EnergyRatio >= 0.75f ) {
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
-			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
+			spriteRenderer->drawSprite( image , rightPos, pBoxSize, 0.0f );
 		} else {
 			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f );
 			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
@@ -973,14 +980,6 @@ void GravityPong::renderGUI() const {
 		spriteRenderer->drawSprite( image, punishmentPos, punishmentSize, 0.0f );
 	}
 	return;
-
-	// draw player energy text
-
-	ss << (GLuint)p1Energy;
-	textRenderer->renderText( ss.str(), pos.x + width * 0.01f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
-	ss.str( std::string() );
-	ss << (GLuint)p2Energy;
-	textRenderer->renderText( ss.str(), pos2.x + size2.x - width * 0.06f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
 
 	// draw punishment notifications
 	offsetX = 0.40f;
