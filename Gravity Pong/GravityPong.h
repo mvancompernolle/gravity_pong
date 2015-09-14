@@ -198,6 +198,7 @@ private:
 	glm::vec2					heightRange;
 	GLfloat						p1BounceCooldown, p2BounceCooldown;
 	GLfloat						nextPunishmentCountdown;
+	PUNISHMENT_TYPE						nextPunishmentType;
 	Punishment					punishment;
 	GLboolean					p1IsGravReversed, p2IsGravReversed;
 

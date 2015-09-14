@@ -102,6 +102,10 @@ void GravityPong::init() {
 	// initialize player energy levels
 	p1Energy = 1000.0f;
 	p2Energy = 1000.0f;
+
+	// random select first punishment
+	int randomPunishment = rand() % NUM_PUNISHMENTS;
+	nextPunishmentType = (PUNISHMENT_TYPE) randomPunishment;
 }
 
 void GravityPong::processInput( const GLfloat dt ) {
@@ -907,6 +911,32 @@ void GravityPong::renderGUI() const {
 	glm::vec2 rightPos = glm::vec2( ( width - offsetX ) - pBoxSize.x, heightRange.x / 3.0f + ( heightRange.x * ( 2.0f / 3.0f ) * 0.05f ) );
 	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_text_box" ), glm::vec2( rightPos.x - textBoxSize.x - 0.02 * pBoxSize.x, leftPos.y ), textBoxSize, 0.0f );
 
+	// get punishment icon
+	Texture image;
+	PUNISHMENT_TYPE type;
+	if( nextPunishmentCountdown > 0.0f ) {
+		type = nextPunishmentType;
+	} else {
+		type = punishment.type;
+	}
+	switch( type ) {
+	case SLOW:
+		image = ResourceManager::getTexture( "slow_punishment" );
+		break;
+	case SHRINK:
+		image = ResourceManager::getTexture( "shrink_punishment" );
+		break;
+	case INVERSE:
+		image = ResourceManager::getTexture( "inverse_punishment" );
+		break;
+	case TRAIL:
+		image = ResourceManager::getTexture( "trail_punishment" );
+		break;
+	case ABUSE:
+		image = ResourceManager::getTexture( "abuse_punishment" );
+		break;
+	}
+
 	// draw punishment countdown
 	std::stringstream ss;
 	if( nextPunishmentCountdown > 0.0f ) {
@@ -918,39 +948,20 @@ void GravityPong::renderGUI() const {
 		// draw punishment icon
 		GLfloat p1EnergyRatio = p1Energy / ( p1Energy + p2Energy );
 		if( p1EnergyRatio <= 0.25f ) {
-			spriteRenderer->drawSprite( ResourceManager::getTexture( "abuse_punishment" ), leftPos, pBoxSize, 0.0f );
+			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f );
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
 		} else if( p1EnergyRatio >= 0.75f ) {
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
-			spriteRenderer->drawSprite( ResourceManager::getTexture( "abuse_punishment" ), rightPos, pBoxSize, 0.0f );
+			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
 		} else {
-			spriteRenderer->drawSprite( ResourceManager::getTexture( "abuse_punishment" ), leftPos, pBoxSize, 0.0f );
-			spriteRenderer->drawSprite( ResourceManager::getTexture( "abuse_punishment" ), rightPos, pBoxSize, 0.0f );
+			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f );
+			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
 		}
 	} else {
-		Texture image;
 		GLfloat sizeY = ( 0.755f * heightRange.x ) * 0.9;
 		GLfloat scale = ( sizeY / pBoxSize.y );
 		glm::vec2 punishmentSize = pBoxSize * scale;
 		glm::vec2 punishmentPos;
-
-		switch( punishment.type ) {
-		case SLOW:
-			image = ResourceManager::getTexture( "slow_punishment" );
-			break;
-		case SHRINK:
-			image = ResourceManager::getTexture( "shrink_punishment" );
-			break;
-		case INVERSE:
-			image = ResourceManager::getTexture( "inverse_punishment" );
-			break;
-		case TRAIL:
-			image = ResourceManager::getTexture( "trail_punishment" );
-			break;
-		case ABUSE:
-			image = ResourceManager::getTexture( "abuse_punishment" );
-			break;
-		}
 
 		// draw active punishment
 		if( punishment.player == P1_SELECTED ) {
@@ -1196,11 +1207,8 @@ void GravityPong::dealPunishment() {
 		}
 	}
 
-	// randomly selected the punishment
-	int randomPunishment = rand() % NUM_PUNISHMENTS;
-	PUNISHMENT_TYPE type = (PUNISHMENT_TYPE)randomPunishment;
-	punishment = Punishment( selectedPlayer, type, paddle );
-	switch( type ) {
+	punishment = Punishment( selectedPlayer, nextPunishmentType, paddle );
+	switch( nextPunishmentType ) {
 	case SLOW:
 		punishment.paddle->speed = PADDLE_SPEED / 1.5f;
 		break;
@@ -1235,7 +1243,10 @@ void GravityPong::clearPunishment() {
 
 		punishment = Punishment();
 	}
+	// randomly selected the next punishment
 	nextPunishmentCountdown = PUNISHMENT_COUNTDOWN;
+	int randomPunishment = rand() % NUM_PUNISHMENTS;
+	nextPunishmentType = (PUNISHMENT_TYPE)randomPunishment;
 }
 
 void GravityPong::rotateRectangle( glm::vec2 rect[4], GLfloat rotation, const glm::vec2 center ) const {
