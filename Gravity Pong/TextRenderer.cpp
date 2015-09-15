@@ -88,8 +88,8 @@ void TextRenderer::renderText( std::string text, GLfloat x, GLfloat y, GLfloat s
 
 	// iterate through all characters
 	std::string::const_iterator c;
-	for( c = text.begin(); c != text.end(); c++ ) {
-		Character ch = characters[*c];
+	for ( int c = 0; c < text.length(); ++c ) {
+		Character ch = characters[text[c]];
 
 		GLfloat xpos = x + ch.bearing.x * scale;
 		GLfloat ypos = y + ( characters['H'].bearing.y - ch.bearing.y ) * scale;
@@ -117,6 +117,51 @@ void TextRenderer::renderText( std::string text, GLfloat x, GLfloat y, GLfloat s
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
 		// now advance cursors for next glyph
 		x += ( ch.advance >> 6 ) * scale;
+	}
+	glBindVertexArray( 0 );
+	glBindTexture( GL_TEXTURE_2D, 0 );
+}
+
+void TextRenderer::renderTextRightAlligned( std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color ){
+	// activate corresponding render state
+	shader.use();
+	shader.setVector3f( "textColor", color );
+	glActiveTexture( GL_TEXTURE0 );
+	glBindVertexArray( VAO );
+
+	// iterate through all characters
+	std::string::const_iterator c;
+	x -= ( characters[text[text.length()-1]].advance >> 6 ) * scale;
+	for ( int c = text.length()-1; c >= 0; --c ) {
+		Character ch = characters[text[c]];
+
+
+		GLfloat w = ch.size.x * scale;
+		GLfloat h = ch.size.y * scale;
+
+		GLfloat xpos = x - ch.bearing.x * scale;
+		GLfloat ypos = y + ( characters['H'].bearing.y - ch.bearing.y ) * scale;
+
+		// update VBO for each character
+		GLfloat vertices[6][4] = {
+			{ xpos, ypos + h, 0.0, 1.0 },
+			{ xpos + w, ypos, 1.0, 0.0 },
+			{ xpos, ypos, 0.0, 0.0 },
+
+			{ xpos, ypos + h, 0.0, 1.0 },
+			{ xpos + w, ypos + h, 1.0, 1.0 },
+			{ xpos + w, ypos, 1.0, 0.0 }
+		};
+		// render glyph texture over quad
+		glBindTexture( GL_TEXTURE_2D, ch.textureID );
+		// update content of VBO memory
+		glBindBuffer( GL_ARRAY_BUFFER, VBO );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof( vertices ), vertices );
+
+		glBindBuffer( GL_ARRAY_BUFFER, 0 );
+		glDrawArrays( GL_TRIANGLES, 0, 6 );
+		// now advance cursors for next glyph
+		x -= ( ch.advance >> 6 ) * scale;
 	}
 	glBindVertexArray( 0 );
 	glBindTexture( GL_TEXTURE_2D, 0 );

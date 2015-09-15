@@ -109,8 +109,9 @@ void RetroRenderer::renderGravityBall( const GravityBall& gravBall ) const {
 
 	if( !gravBall.isReversed ) {
 		renderLine( glm::vec2( gravBall.getCenter().x - gravBall.radius * 0.5f, gravBall.getCenter().y ), glm::vec2( gravBall.getCenter().x + gravBall.radius * 0.5f, gravBall.getCenter().y ) );
-	} else {
 		renderLine( glm::vec2( gravBall.getCenter().x, gravBall.getCenter().y - gravBall.radius * 0.5f ), glm::vec2( gravBall.getCenter().x, gravBall.getCenter().y + gravBall.radius * 0.5f ) );
+	} else {
+		renderLine( glm::vec2( gravBall.getCenter().x - gravBall.radius * 0.5f, gravBall.getCenter().y ), glm::vec2( gravBall.getCenter().x + gravBall.radius * 0.5f, gravBall.getCenter().y ) );
 	}
 }
 
@@ -166,5 +167,18 @@ void RetroRenderer::renderPlayerSymbol( PLAYER_SELECTED player, glm::vec2 pos ) 
 		renderLine( p3, p4 );
 		renderLine( p4, p5 );
 		renderLine( p5, p6 );
+	}
+}
+
+void RetroRenderer::renderGrapple( const GrappleAttack& grapple ) const {
+	// render links
+	for ( int i = 0; i < grapple.NUM_ANCHORS - 1; ++i ) {
+		glm::vec2 diff = glm::normalize(grapple.anchors[i + 1].getCenter() - grapple.anchors[i].getCenter());
+		renderLine( grapple.anchors[i].getCenter() + diff * grapple.anchors[i].radius, grapple.anchors[i+1].getCenter() - diff * grapple.anchors[i+1].radius );
+	}
+
+	// render anchors
+	for ( const BallObject& anchor : grapple.anchors ) {
+		renderCircle( anchor.getCenter(), anchor.radius, 10 );
 	}
 }

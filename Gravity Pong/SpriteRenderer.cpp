@@ -9,7 +9,7 @@ SpriteRenderer::~SpriteRenderer() {
 	glDeleteVertexArrays(1, &VAO);
 }
 
-void SpriteRenderer::drawSprite( Texture& texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec4 color) {
+void SpriteRenderer::drawSprite( Texture& texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec4 color, GLboolean flipY ) {
 	shader.use();
 	glm::mat4 model;
 
@@ -27,6 +27,7 @@ void SpriteRenderer::drawSprite( Texture& texture, glm::vec2 position, glm::vec2
 	model = glm::scale(model, glm::vec3(size, 1.0f));
 
 	shader.setMatrix4("model", model);
+	shader.setInteger( "flipTexture", flipY );
 
 	// render the sprite
 	shader.setVector4f("spriteColor", color);

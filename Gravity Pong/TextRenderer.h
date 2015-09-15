@@ -27,6 +27,7 @@ public:
 								~TextRenderer();
 	void						load( std::string font, GLuint fontSize );
 	void						renderText( std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color = glm::vec3( 1.0f ) );
+	void						renderTextRightAlligned( std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color = glm::vec3( 1.0f ) );
 private:
 	GLuint VAO, VBO;
 };

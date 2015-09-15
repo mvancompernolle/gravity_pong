@@ -12,6 +12,7 @@
 #include "GravityBall.h"
 #include "Missile.h"
 #include "LeechAttack.h"
+#include "GrappleAttack.h"
 
 class RetroRenderer {
 public:
@@ -29,6 +30,7 @@ public:
 	void	renderLeech( const LeechAttack& leech ) const;
 	void	renderEnter( glm::vec2 center, glm::vec2 size ) const;
 	void	renderPlayerSymbol( PLAYER_SELECTED player, glm::vec2 pos ) const;
+	void	renderGrapple( const GrappleAttack& grapple ) const;
 };
 
 #endif RETRO_RENDERER_H

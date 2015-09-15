@@ -96,19 +96,19 @@ struct Punishment {
 		}
 	}
 
-	std::string getPunishmentName() const {
+	static std::string getPunishmentName( PUNISHMENT_TYPE type ) {
 		switch( type ) {
 		case SLOW:
 			return "Slow";
 			break;
 		case SHRINK:
-			return "Shrink";
+			return "Shrnk";
 			break;
 		case ABUSE:
 			return "Abuse";
 			break;
 		case INVERSE:
-			return "Invrt";
+			return "Invrs";
 			break;
 		case TRAIL:
 			return "Trail";

@@ -212,7 +212,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 		if( keys[GLFW_KEY_C] && !keysProcessed[GLFW_KEY_C] ) {
 			if( p1Energy >= LEECH_COST ) {
 				LeechAttack leech( glm::vec2( player1->pos.x + 1.5f * player1->size.x - LEECH_RADIUS, player1->getCenter().y - LEECH_RADIUS ),
-					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( LEECH_SPEED, 0.0f ) );
+					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( LEECH_SPEED, 0.0f ), player2 );
 				leechAttacks.push_back( leech );
 				p1Energy -= LEECH_COST;
 				keysProcessed[GLFW_KEY_C] = GL_TRUE;
@@ -220,8 +220,8 @@ void GravityPong::processInput( const GLfloat dt ) {
 		}
 		if( keys[GLFW_KEY_RIGHT_CONTROL] && !keysProcessed[GLFW_KEY_RIGHT_CONTROL] ) {
 			if( p2Energy >= LEECH_COST ) {
-				LeechAttack leech( glm::vec2( player2->pos.x - 0.5f * player2->size.x - LEECH_RADIUS, player1->getCenter().y - LEECH_RADIUS ),
-					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( -LEECH_SPEED, 0.0f ) );
+				LeechAttack leech( glm::vec2( player2->pos.x - 0.5f * player2->size.x - LEECH_RADIUS, player2->getCenter().y - LEECH_RADIUS ),
+					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( -LEECH_SPEED, 0.0f ), player1 );
 				leechAttacks.push_back( leech );
 				p2Energy -= LEECH_COST;
 				keysProcessed[GLFW_KEY_RIGHT_CONTROL] = GL_TRUE;
@@ -467,6 +467,14 @@ void GravityPong::renderRetro() {
 		retroRenderer.renderLeech( leech );
 	}
 
+	// render grapples
+	if ( p1Grapple != nullptr ) {
+		retroRenderer.renderGrapple( *p1Grapple );
+	}
+	if ( p2Grapple != nullptr ) {
+		retroRenderer.renderGrapple( *p2Grapple );
+	}
+
 	// rnder paddles and game ball
 	retroRenderer.renderGameBall( *ball );
 	retroRenderer.renderPaddle( *player1 );
@@ -542,28 +550,28 @@ void GravityPong::handleCollisions() {
 
 	// check for leech collisions
 	for( LeechAttack& leech : leechAttacks ) {
-		if( leech.LAUNCH_DIRECTION.x > 0 ) {
+		if( leech.target == player2 ) {
 			// player 1 launched the attack
-			if( leech.vel.x > 0 ) {
+			if( !leech.isAttached && !leech.isReturning ) {
 				Collision collision = checkBallRectCollision( leech, *player2 );
 				if( std::get<0>( collision ) ) {
-					leech.attachLeech( player2 );
+					leech.attachLeech();
 				}
-			} else if( leech.vel.x < 0 ) {
+			} else if( leech.isReturning ) {
 				Collision collision = checkBallRectCollision( leech, *player1 );
 				if( std::get<0>( collision ) ) {
 					leech.isAlive = GL_FALSE;
 					addEnergy( P1_SELECTED, leech.amountLeeched );
 				}
 			}
-		} else if( leech.LAUNCH_DIRECTION.x < 0 ) {
+		} else if ( leech.target == player1 ) {
 			// player 2 launched the attack
-			if( leech.vel.x < 0 ) {
+			if ( !leech.isAttached && !leech.isReturning ) {
 				Collision collision = checkBallRectCollision( leech, *player1 );
 				if( std::get<0>( collision ) ) {
-					leech.attachLeech( player1 );
+					leech.attachLeech( );
 				}
-			} else if( leech.vel.x > 0 ) {
+			} else if ( leech.isReturning ) {
 				Collision collision = checkBallRectCollision( leech, *player2 );
 				if( std::get<0>( collision ) ) {
 					leech.isAlive = GL_FALSE;
@@ -804,6 +812,16 @@ void GravityPong::resetGame() {
 	// clear leeches
 	leechAttacks.clear();
 
+	// clear grapples
+	if ( p1Grapple != nullptr ) {
+		delete p1Grapple;
+		p1Grapple = nullptr;
+	}
+	if ( p2Grapple != nullptr ) {
+		delete p2Grapple;
+		p2Grapple = nullptr;
+	}
+
 	// reset punishment
 	clearPunishment();
 }
@@ -883,16 +901,16 @@ void GravityPong::renderGUI() const {
 	spriteRenderer->drawSprite( ResourceManager::getTexture( "energy" ), pos2, size2, 0.0f, glm::vec4( 0.52f, 0.43f, 0.85f, 1.0f ) );
 	spriteRenderer->drawSprite( ResourceManager::getTexture( "energy" ), pos, size, 0.0f, glm::vec4( 0.57f, 0.80f, 0.97f, 1.0f ) );
 
+	// draw gui background
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "gui_background" ), glm::vec2( 0.0f ), glm::vec2( width, .15 * height ), 0.0f );
+
 	// draw player energy text
 	std::stringstream ss;
 	ss << (GLuint)p1Energy;
 	textRenderer->renderText( ss.str(), pos.x + width * 0.01f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
 	ss.str( std::string() );
 	ss << (GLuint)p2Energy;
-	textRenderer->renderText( ss.str(), pos2.x + size2.x - width * 0.06f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
-
-	// draw gui background
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "gui_background" ), glm::vec2( 0.0f ), glm::vec2( width, .15 * height ), 0.0f );
+	textRenderer->renderTextRightAlligned( ss.str(), pos2.x + size2.x - width * 0.01f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
 
 	// draw red punishment marker
 	glm::vec2 markerSize = glm::vec2( 4.0f, size.y );
@@ -915,9 +933,11 @@ void GravityPong::renderGUI() const {
 	glm::vec2 leftPos = glm::vec2( offsetX, heightRange.x / 3.0f + ( heightRange.x * ( 2.0f / 3.0f ) * 0.05f ) );
 	glm::vec2 pBoxSize = glm::vec2( ( 0.7f * 0.25f * width ) / 3.0f, 0.9f * heightRange.x * ( 2.0f / 3.0f ) );
 	glm::vec2 textBoxSize = glm::vec2( pBoxSize.x * 2.0f, pBoxSize.y );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_text_box" ), glm::vec2( leftPos.x + pBoxSize.x + 0.02 * pBoxSize.x, leftPos.y ), textBoxSize, 0.0f );
 	glm::vec2 rightPos = glm::vec2( ( width - offsetX ) - pBoxSize.x, heightRange.x / 3.0f + ( heightRange.x * ( 2.0f / 3.0f ) * 0.05f ) );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_text_box" ), glm::vec2( rightPos.x - textBoxSize.x - 0.02 * pBoxSize.x, leftPos.y ), textBoxSize, 0.0f );
+	glm::vec2 leftTextPos = glm::vec2( leftPos.x + pBoxSize.x + 0.02 * pBoxSize.x, leftPos.y );
+	glm::vec2 rightTextPos = glm::vec2( rightPos.x - textBoxSize.x - 0.02 * pBoxSize.x, leftPos.y );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_text_box" ), leftTextPos, textBoxSize, 0.0f );
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_text_box" ), rightTextPos, textBoxSize, 0.0f );
 
 	// get punishment icon
 	Texture image;
@@ -947,111 +967,63 @@ void GravityPong::renderGUI() const {
 
 	// draw punishment countdown
 	if( nextPunishmentCountdown > 0.0f ) {
-		// draw punishment countdown
-		ss.str( std::string() );
-		ss << (GLint)nextPunishmentCountdown;
-		textRenderer->renderText( ss.str(), width / 2.0f - 0.01f * width, heightRange.x * ( 2.0f / 3.0f ) - 24.0f, 3.0f );
 
-		// draw punishment icon
+		if ( state != GAME_OVER ) {
+			// draw punishment countdown
+			ss.str( std::string() );
+			ss << (GLint)nextPunishmentCountdown;
+			textRenderer->renderText( ss.str(), width / 2.0f - 0.01f * width, heightRange.x * ( 2.0f / 3.0f ) - 24.0f, 3.0f );
+		}
+
+		// draw punishment icon and text
 		GLfloat p1EnergyRatio = p1Energy / ( p1Energy + p2Energy );
 		if( p1EnergyRatio <= 0.25f ) {
-			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f );
+			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 6.0f, leftTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
 		} else if( p1EnergyRatio >= 0.75f ) {
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
-			spriteRenderer->drawSprite( image , rightPos, pBoxSize, 0.0f );
-		} else {
-			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f );
 			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 6.0f, rightTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
+		} else {
+			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
+			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 6.0f, leftTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 6.0f, rightTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
 		}
 	} else {
 		GLfloat sizeY = ( 0.755f * heightRange.x ) * 0.9;
 		GLfloat scale = ( sizeY / pBoxSize.y );
 		glm::vec2 punishmentSize = pBoxSize * scale;
 		glm::vec2 punishmentPos;
-
-		// draw active punishment
-		if( punishment.player == P1_SELECTED ) {
-			punishmentPos = glm::vec2( 0.02f * 0.15f * width, ( 0.245f * heightRange.x ) * 1.1f );
-		} else {
-			punishmentPos = glm::vec2( width - (0.02f * 0.15f * width) - punishmentSize.x, ( 0.245f * heightRange.x ) * 1.1f );
-		}
-
-		spriteRenderer->drawSprite( image, punishmentPos, punishmentSize, 0.0f );
-	}
-	return;
-
-	// draw punishment notifications
-	offsetX = 0.40f;
-	pos = glm::vec2( offsetX * width, pos.y + size.y + heightRange.x * 0.03f );
-	size = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ), 0.5f * heightRange.x );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "red" ), pos, size, 0.0f, glm::vec4( glm::vec3( 0.75f ), 1.0f ) );
-	size.y = 0.3f * size.y;
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f, glm::vec4( glm::vec3( 0.75f ), 1.0f ) );
-	textRenderer->renderText( "Punishment", width / 2.0f - 0.03f * width, pos.y + 0.01f * heightRange.x, 1.0f, glm::vec3( 0.0f ) );
-
-	if( nextPunishmentCountdown > 0.0f ) {
-		// draw punishment countdown
+		 
 		ss.str( std::string() );
-		ss << (GLint)nextPunishmentCountdown;
-		textRenderer->renderText( ss.str(), width / 2.0f - 0.01f * width, pos.y + 0.2f * heightRange.x, 2.0f );
-	} else {
-		// draw current punishment
-		pos.x = pos.x + 0.01f * heightRange.x;
-		pos.y = pos.y + 0.01f * heightRange.x + size.y;
-		size.x = 0.05f * width;
-		size.y = 0.32f * heightRange.x;
-
-		// draw which player is selected
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f );
-		ss.str( std::string() );
-		ss << (GLint)punishment.player + 1;
-		textRenderer->renderText( "P" + ss.str(), pos.x + size.x / 3.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
-
-		// draw what the punishment is
-		pos.x += 0.074 * width;
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f );
-		switch( punishment.type ) {
-		case SLOW:
-			textRenderer->renderText( "SLOW", pos.x + size.x / 20.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
-			break;
-		case SHRINK:
-			textRenderer->renderText( "SHRNK", pos.x + size.x / 20.0f, pos.y + size.y / 3.0f, 1.0f, glm::vec3( 0.0f ) );
-			break;
-		case ABUSE:
-			textRenderer->renderText( "ABUSE", pos.x + size.x / 20.0f, pos.y + size.y / 4.0f, 1.2f, glm::vec3( 0.0f ) );
-			break;
-		case INVERSE:
-			textRenderer->renderText( "INVRT", pos.x + size.x / 20.0f, pos.y + size.y / 4.0f, 1.2f, glm::vec3( 0.0f ) );
-			break;
-		case TRAIL:
-			textRenderer->renderText( "TRAIL", pos.x + size.x / 20.0f, pos.y + size.y / 4.0f, 1.2f, glm::vec3( 0.0f ) );
-			break;
-		}
-
-		// draw its duration
-		pos.x += 0.074 * width;
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "white" ), pos, size, 0.0f );
-		ss.str( std::string() );
-		if( punishment.charges > 0 ) {
+		if ( punishment.charges > 0 ) {
 			ss << "C:" << punishment.charges;
 		} else {
 			ss << "T:" << (GLint)punishment.timeLeft;
 		}
-		textRenderer->renderText( ss.str(), pos.x + size.x / 20.0f, pos.y + size.y / 5.0f, 1.5f, glm::vec3( 0.0f ) );
+
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
+
+		// draw active punishment
+		if( punishment.player == P1_SELECTED ) {
+			punishmentPos = glm::vec2( 0.02f * 0.15f * width, ( 0.245f * heightRange.x ) * 1.1f );
+			// draw current punishment and its duration
+			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 6.0f, leftTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( ss.str(), leftPos.x + pBoxSize.x / 6.0f, leftPos.y + pBoxSize.y / 3.0f, 1.5f );
+		} else {
+			punishmentPos = glm::vec2( width - (0.02f * 0.15f * width) - punishmentSize.x, ( 0.245f * heightRange.x ) * 1.1f );
+			// draw current punishment and its duration
+			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 6.0f, rightTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( ss.str(), rightPos.x + pBoxSize.x / 6.0f, leftPos.y + pBoxSize.y / 3.0f, 1.5f );
+		}
+		spriteRenderer->drawSprite( image, punishmentPos, punishmentSize, 0.0f, glm::vec4( 1.0f ), punishment.player == P1_SELECTED );
 	}
 
-	// render player lives
-	ss.str( std::string() );
-	ss << p1Lives;
-	textRenderer->renderText( "Lives: " + ss.str(), 5.0f, 5.0f, 1.0f );
-	ss.str( std::string() );
-	ss << p2Lives;
-	textRenderer->renderText( "Lives: " + ss.str(), width - 130.0f, 5.0f, 1.0f );
-
 	if( state == GAME_OVER ) {
-		textRenderer->renderText( p1Lives == 0 ? "Player 2 won" : "Player 1 won", width / 2 - 80.0f, height / 2, 1.0f );
-		textRenderer->renderText( "Press ENTER to retry or ESC to quit", width / 2 - 170.0f, height / 2 + 20.0f, 0.75f );
+		textRenderer->renderText( "Press ENTER to start or ESC to quit", 0.4f * width, rightTextPos.y + textBoxSize.y / 3.0f, 0.8f );
 	}
 
 }
@@ -1336,7 +1308,7 @@ void GravityPong::addEnergy( PLAYER_SELECTED player, GLfloat energy ) {
 	// check to see if leach attached to player 1
 	for( int i = 0; i < leechAttacks.size() && energy > 0; ++i ) {
 		LeechAttack& leech = leechAttacks[i];
-		if( leech.attachedTo == plr ) {
+		if( leech.target == plr ) {
 			// give energy to leech and any left overs to the player
 			energy = leech.addEnergy( energy );
 		}

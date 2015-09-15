@@ -82,7 +82,6 @@ void Missile::update( const GLfloat dt ) {
 	} else if( glm::length( vel ) > MAX_SPEED / 4.0f ) {
 		GLfloat speed = glm::length( vel ) - (ACCELERATION * dt) / 5.0f;
 		vel = glm::normalize( vel ) * speed;
-		//std::cout << speed << " " << normalized.x * speed << " " << normalized.y << std::endl;
 	}
 
 	if( glm::length( vel ) > MAX_SPEED ) {
