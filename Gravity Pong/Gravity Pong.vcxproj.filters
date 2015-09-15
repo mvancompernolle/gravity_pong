@@ -111,6 +111,9 @@
     <Image Include="slow_punishment.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="abuse_punishment.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BallObject.cpp">
@@ -266,6 +269,8 @@
     </None>
     <None Include="FreeImagePlusd.dll" />
     <None Include="FreeImaged.dll" />
+    <None Include="glew32.dll" />
+    <None Include="glew32d.dll" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="OCRAEXT.TTF">
