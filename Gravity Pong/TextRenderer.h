@@ -11,6 +11,12 @@
 #include "Texture.h"
 #include "Shader.h"
 
+enum TEXT_ALIGNMENT {
+	LEFT_ALIGNED,
+	RIGHT_ALIGNED,
+	CENTERED
+};
+
 struct Character {
 	GLuint textureID;
 	glm::ivec2 size; // size of glyph
@@ -26,8 +32,7 @@ public:
 								TextRenderer( GLuint width, GLuint height );
 								~TextRenderer();
 	void						load( std::string font, GLuint fontSize );
-	void						renderText( std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color = glm::vec3( 1.0f ) );
-	void						renderTextRightAlligned( std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color = glm::vec3( 1.0f ) );
+	void						renderText( std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color = glm::vec3( 1.0f ), TEXT_ALIGNMENT alignment = LEFT_ALIGNED );
 private:
 	GLuint VAO, VBO;
 };

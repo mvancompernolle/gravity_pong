@@ -907,10 +907,10 @@ void GravityPong::renderGUI() const {
 	// draw player energy text
 	std::stringstream ss;
 	ss << (GLuint)p1Energy;
-	textRenderer->renderText( ss.str(), pos.x + width * 0.01f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
+	textRenderer->renderText( ss.str(), pos.x + width * 0.01f, pos.y + size.y * 0.2f, (size.y * 0.6f) / 16.0f, glm::vec3( 0.0f ) );
 	ss.str( std::string() );
 	ss << (GLuint)p2Energy;
-	textRenderer->renderTextRightAlligned( ss.str(), pos2.x + size2.x - width * 0.01f, pos.y + height * 0.005f, 1.5f, glm::vec3( 0.0f ) );
+	textRenderer->renderText( ss.str(), pos2.x + size2.x - width * 0.01f, pos.y + size.y * 0.2f, ( size.y * 0.6f ) / 16.0f, glm::vec3( 0.0f ), RIGHT_ALIGNED );
 
 	// draw red punishment marker
 	glm::vec2 markerSize = glm::vec2( 4.0f, size.y );
@@ -972,7 +972,7 @@ void GravityPong::renderGUI() const {
 			// draw punishment countdown
 			ss.str( std::string() );
 			ss << (GLint)nextPunishmentCountdown;
-			textRenderer->renderText( ss.str(), width / 2.0f - 0.01f * width, heightRange.x * ( 2.0f / 3.0f ) - 24.0f, 3.0f );
+			textRenderer->renderText( ss.str(), width / 2.0f, heightRange.x * ( 1.0f / 3.0f ) + heightRange.x * ( 2.0f / 3.0f ) * 0.3f, ( heightRange.x * ( 2.0f / 3.0f ) * 0.4f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
 		}
 
 		// draw punishment icon and text
@@ -980,16 +980,16 @@ void GravityPong::renderGUI() const {
 		if( p1EnergyRatio <= 0.25f ) {
 			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 6.0f, leftTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
 		} else if( p1EnergyRatio >= 0.75f ) {
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
 			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 6.0f, rightTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
 		} else {
 			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
 			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 6.0f, leftTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 6.0f, rightTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
 		}
 	} else {
 		GLfloat sizeY = ( 0.755f * heightRange.x ) * 0.9;
@@ -1011,19 +1011,20 @@ void GravityPong::renderGUI() const {
 		if( punishment.player == P1_SELECTED ) {
 			punishmentPos = glm::vec2( 0.02f * 0.15f * width, ( 0.245f * heightRange.x ) * 1.1f );
 			// draw current punishment and its duration
-			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 6.0f, leftTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
-			textRenderer->renderText( ss.str(), leftPos.x + pBoxSize.x / 6.0f, leftPos.y + pBoxSize.y / 3.0f, 1.5f );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+			textRenderer->renderText( ss.str(), leftPos.x + pBoxSize.x / 2.0f, leftPos.y + pBoxSize.y * 0.35f, (pBoxSize.y * 0.3f) / 16.0f, glm::vec3( 1.0f ), CENTERED );
 		} else {
 			punishmentPos = glm::vec2( width - (0.02f * 0.15f * width) - punishmentSize.x, ( 0.245f * heightRange.x ) * 1.1f );
 			// draw current punishment and its duration
-			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 6.0f, rightTextPos.y + textBoxSize.y / 3.0f, 2.0f, glm::vec3( 0.0f ) );
-			textRenderer->renderText( ss.str(), rightPos.x + pBoxSize.x / 6.0f, leftPos.y + pBoxSize.y / 3.0f, 1.5f );
+			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+			textRenderer->renderText( ss.str(), rightPos.x + pBoxSize.x / 2.0f, leftPos.y + pBoxSize.y * 0.35f, ( pBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
 		}
 		spriteRenderer->drawSprite( image, punishmentPos, punishmentSize, 0.0f, glm::vec4( 1.0f ), punishment.player == P1_SELECTED );
 	}
 
 	if( state == GAME_OVER ) {
-		textRenderer->renderText( "Press ENTER to start or ESC to quit", 0.4f * width, rightTextPos.y + textBoxSize.y / 3.0f, 0.8f );
+		textRenderer->renderText( "Press ENTER to start or ESC to quit", 0.5f * width,
+			heightRange.x * ( 1.0f / 3.0f ) + heightRange.x * ( 2.0f / 3.0f ) * 0.43f, ( heightRange.x * ( 2.0f / 3.0f ) * 0.14f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
 	}
 
 }
@@ -1208,7 +1209,7 @@ void GravityPong::clearPunishment() {
 			punishment.paddle->size.y = PADDLE_SIZE.y;
 			break;
 		case INVERSE:
-			punishment.paddle->speed = -punishment.paddle->speed;
+			punishment.paddle->speed = PADDLE_SPEED;
 			break;
 		}
 

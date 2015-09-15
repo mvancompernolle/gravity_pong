@@ -102,13 +102,13 @@ struct Punishment {
 			return "Slow";
 			break;
 		case SHRINK:
-			return "Shrnk";
+			return "Shrink";
 			break;
 		case ABUSE:
 			return "Abuse";
 			break;
 		case INVERSE:
-			return "Invrs";
+			return "Inverse";
 			break;
 		case TRAIL:
 			return "Trail";
