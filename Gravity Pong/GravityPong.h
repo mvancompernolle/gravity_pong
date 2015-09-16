@@ -152,7 +152,7 @@ public:
 	const GLfloat GRAPPLE_ANCHOR_RADIUS = 15.0f;
 	const GLfloat GRAPPLE_LINK_WIDTH = 10.0f;
 	const GLfloat GRAPPLE_SPEED = 1250.0f;
-	const GLfloat GRAPPLE_COST = 500.0f;
+	const GLfloat GRAPPLE_COST = 200.0f;
 	const GLfloat GRAPPLE_DURATION = 5.0f;
 	const GLfloat GRAPPLE_PULL_STRENGTH = 10.0f;
 

@@ -40,11 +40,14 @@ void GravityPong::init() {
 	ResourceManager::getShader( "particle" ).setMatrix4( "projection", projection );
 
 	// load textures
-	ResourceManager::loadTexture( "background.jpg", GL_FALSE, "background" );
+	ResourceManager::loadTexture( "background2.jpg", GL_TRUE, "background" );
 	ResourceManager::loadTexture( "paddle.png", GL_TRUE, "paddle" );
-	ResourceManager::loadTexture( "character.png", GL_TRUE, "ball" );
+	ResourceManager::loadTexture("alien_paddle.png", GL_TRUE, "alien_paddle");
+	ResourceManager::loadTexture("tech_paddle.png", GL_TRUE, "tech_paddle");
+	ResourceManager::loadTexture( "ball.png", GL_TRUE, "ball" );
 	ResourceManager::loadTexture( "arrow_green.png", GL_TRUE, "green_arrow" );
-	ResourceManager::loadTexture( "gravity_ball.png", GL_TRUE, "gravity_ball" );
+	ResourceManager::loadTexture( "gravity_ball2.png", GL_TRUE, "gravity_ball" );
+	ResourceManager::loadTexture("repulsion_ball.png", GL_TRUE, "repulsion_ball");
 	ResourceManager::loadTexture( "missile.png", GL_TRUE, "missile" );
 	ResourceManager::loadTexture( "explosion.png", GL_TRUE, "explosion" );
 	ResourceManager::loadTexture( "smoke.png", GL_TRUE, "smoke" );
@@ -77,9 +80,9 @@ void GravityPong::init() {
 
 	// create player paddles
 	glm::vec2 playerPos = glm::vec2( 0.0f, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
-	player1 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec4( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
+	player1 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec4( 1.0f ), ResourceManager::getTexture( "tech_paddle" ), PADDLE_SPEED );
 	playerPos = glm::vec2( width - PADDLE_SIZE.x, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
-	player2 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec4( 1.0f ), ResourceManager::getTexture( "paddle" ), PADDLE_SPEED );
+	player2 = new PaddleObject( playerPos, PADDLE_SIZE, glm::vec4( 1.0f ), ResourceManager::getTexture( "alien_paddle" ), PADDLE_SPEED );
 
 	// create ball
 	GLuint radius = ( heightRange.y - heightRange.x ) / 50.0f;
@@ -140,7 +143,8 @@ void GravityPong::processInput( const GLfloat dt ) {
 		// used for gravity balls
 		if( keys[GLFW_KEY_D] ) {
 			if( p1ChargingGravBall == nullptr && p1Energy >= GRAV_BALL_COST ) {
-				p1ChargingGravBall = new GravityBall( glm::vec2( player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), GRAV_BALL_COST * 0.5f );
+				Texture ballTex = p1IsGravReversed ? ResourceManager::getTexture("repulsion_ball") : ResourceManager::getTexture("gravity_ball");
+				p1ChargingGravBall = new GravityBall(glm::vec2(player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f);
 				p1ChargingGravBall->setReversed( p1IsGravReversed );
 				p1Energy -= GRAV_BALL_COST;
 			} else if( p1ChargingGravBall != nullptr ) {
@@ -150,7 +154,8 @@ void GravityPong::processInput( const GLfloat dt ) {
 		}
 		if( keys[GLFW_KEY_LEFT] ) {
 			if( p2ChargingGravBall == nullptr && p2Energy >= GRAV_BALL_COST ) {
-				p2ChargingGravBall = new GravityBall( glm::vec2( width - player2->size.x - GRAV_STARTING_RADIUS * 2.0f, player2->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), GRAV_BALL_COST * 0.5f );
+				Texture ballTex = p2IsGravReversed ? ResourceManager::getTexture("repulsion_ball") : ResourceManager::getTexture("gravity_ball");
+				p2ChargingGravBall = new GravityBall( glm::vec2( width - player2->size.x - GRAV_STARTING_RADIUS * 2.0f, player2->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f );
 				p2ChargingGravBall->setReversed( p2IsGravReversed );
 				p2Energy -= GRAV_BALL_COST;
 			} else if( p2ChargingGravBall != nullptr ) {

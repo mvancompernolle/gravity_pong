@@ -64,9 +64,4 @@ void GravityBall::pullObject( const GLfloat dt, GameObject& object ) const {
 
 void GravityBall::setReversed( const GLboolean reverse ) {
 	this->isReversed = reverse;
-	if ( isReversed ) {
-		color = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-	} else {
-		color = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
-	}
 }
