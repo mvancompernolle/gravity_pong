@@ -1169,8 +1169,8 @@ void GravityPong::dealPunishment() {
 		selectedPlayer = P2_SELECTED;
 		paddle = player2;
 	} else {
-		int randomPlayer = rand() % 2;
-		if( randomPlayer == 0 ) {
+		int randomPlayer = rand() % 100;
+		if( randomPlayer <= 100 * ( 1.0 - p1EnergyPercent) ) {
 			selectedPlayer = P1_SELECTED;
 			paddle = player1;
 		} else {
@@ -1309,7 +1309,7 @@ void GravityPong::addEnergy( PLAYER_SELECTED player, GLfloat energy ) {
 	// check to see if leach attached to player 1
 	for( int i = 0; i < leechAttacks.size() && energy > 0; ++i ) {
 		LeechAttack& leech = leechAttacks[i];
-		if( leech.target == plr ) {
+		if( leech.target == plr && leech.isAttached ) {
 			// give energy to leech and any left overs to the player
 			energy = leech.addEnergy( energy );
 		}

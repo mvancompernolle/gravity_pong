@@ -90,8 +90,8 @@ struct Punishment {
 			charges = 0;
 			break;
 		case TRAIL:
-			timeLeft = 10.0f;
-			charges = 10;
+			timeLeft = 7.0f;
+			charges = 7;
 			break;
 		}
 	}
@@ -151,13 +151,13 @@ public:
 	// grapple
 	const GLfloat GRAPPLE_ANCHOR_RADIUS = 15.0f;
 	const GLfloat GRAPPLE_LINK_WIDTH = 10.0f;
-	const GLfloat GRAPPLE_SPEED = 1000.0f;
+	const GLfloat GRAPPLE_SPEED = 1250.0f;
 	const GLfloat GRAPPLE_COST = 500.0f;
 	const GLfloat GRAPPLE_DURATION = 5.0f;
 	const GLfloat GRAPPLE_PULL_STRENGTH = 10.0f;
 
 	// player
-	const GLuint ENERGY_PER_SECOND = 25;
+	const GLuint ENERGY_PER_SECOND = 20;
 	const GLuint NUM_LIVES = 5;
 	const GLuint ENERGY_PER_BOUNCE = 100;
 	const GLfloat BOUNCE_COOLDOWN_TIME = 0.25f;

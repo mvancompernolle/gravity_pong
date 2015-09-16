@@ -33,8 +33,13 @@ void GrappleAttack::update( const GLfloat dt ) {
 		if( !isAttached ) {
 			anchors[NUM_ANCHORS - 1].pos += anchors[NUM_ANCHORS - 1].vel * dt;
 
-			GLfloat yDiff = anchors[0].getCenter().y - anchors[NUM_ANCHORS - 1].getCenter().y;
-			anchors[NUM_ANCHORS - 1].pos.y += PULL_STRENGTH * yDiff * dt;
+			GLfloat yDiffPlayer1 = anchors[0].getCenter().y - anchors[NUM_ANCHORS - 1].getCenter().y;
+			GLfloat yDiffPlayer2 = target->getCenter().y - anchors[NUM_ANCHORS - 1].getCenter().y;
+			GLfloat pullStrength = ( PULL_STRENGTH / 2.0f ) * yDiffPlayer2 * dt;
+			if ((yDiffPlayer1 > 0 && yDiffPlayer2 > 0) || (yDiffPlayer1 < 0 && yDiffPlayer2 < 0)) {
+				pullStrength *= 2.0f;
+			}
+			anchors[NUM_ANCHORS - 1].pos.y += pullStrength;
 		} else {
 			timeLeft -= dt;
 			//anchors[NUM_ANCHORS - 1].pos = target->getCenter() + farAnchorOffset;
