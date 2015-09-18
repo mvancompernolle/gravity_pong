@@ -171,7 +171,7 @@ void RetroRenderer::renderPlayerSymbol( PLAYER_SELECTED player, glm::vec2 pos ) 
 }
 
 void RetroRenderer::renderGrapple( const GrappleAttack& grapple ) const {
-	// render links
+	/*// render links
 	for ( int i = 0; i < grapple.NUM_ANCHORS - 1; ++i ) {
 		glm::vec2 diff = glm::normalize(grapple.anchors[i + 1].getCenter() - grapple.anchors[i].getCenter());
 		renderLine( grapple.anchors[i].getCenter() + diff * grapple.anchors[i].radius, grapple.anchors[i+1].getCenter() - diff * grapple.anchors[i+1].radius );
@@ -180,5 +180,5 @@ void RetroRenderer::renderGrapple( const GrappleAttack& grapple ) const {
 	// render anchors
 	for ( const BallObject& anchor : grapple.anchors ) {
 		renderCircle( anchor.getCenter(), anchor.radius, 10 );
-	}
+	}*/
 }

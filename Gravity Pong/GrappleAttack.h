@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <vector>
 
 #include "SpriteRenderer.h"
 #include "ResourceManager.h"
@@ -14,17 +15,17 @@
 
 class GrappleAttack {
 public:
-	static const GLuint		NUM_ANCHORS = 10;
-	static const GLuint		NUM_LINKS = NUM_ANCHORS - 1;
+	static const GLuint		NUM_LINKS_BETWEEN = 5;
 	const GLfloat			PULL_STRENGTH;
 	const GLfloat			TIGHTEN_VELOCITY = 300.0f;
 
-	GameObject				links[NUM_LINKS];
-	BallObject				anchors[NUM_ANCHORS];
+	std::vector<GameObject>	links;
+	std::vector<BallObject>	anchors;
 	glm::vec2				closeAnchorOffset, farAnchorOffset;
 	GameObject				*creator, *target;
 	GLboolean				isAlive, isAttached;
-	GLfloat					gameWidth, timeLeft;
+	GLfloat					gameWidth, timeLeft, anchorRadius;
+	Texture					anchor, link, sticker;
 
 							GrappleAttack( GameObject* creator, GameObject* target, glm::vec2 pos, GLfloat anchorRadius, glm::vec2 vel, GLuint width, GLfloat duration = 5.0f );
 							~GrappleAttack();

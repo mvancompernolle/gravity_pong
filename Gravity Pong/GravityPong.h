@@ -127,7 +127,7 @@ public:
 	const GLfloat DEFAULT_BALL_SPEED = 1000.0f;
 	const GLfloat MAX_HIT_ANGLE = 70.0f;
 	//const GLfloat MIN_BALL_SPEED = 300.0f;
-	const GLfloat MIN_BALL_SPEED_X = 300.0f;
+	const GLfloat MIN_BALL_SPEED_X = 100.0f;
 	const GLfloat MAX_BALL_SPEED = 1200.0f;
 
 	// gravity  ball
@@ -149,11 +149,11 @@ public:
 	const GLuint LEECH_COST = 200.0f;
 
 	// grapple
-	const GLfloat GRAPPLE_ANCHOR_RADIUS = 15.0f;
+	const GLfloat GRAPPLE_ANCHOR_RADIUS = 20.0f;
 	const GLfloat GRAPPLE_LINK_WIDTH = 10.0f;
-	const GLfloat GRAPPLE_SPEED = 1250.0f;
-	const GLfloat GRAPPLE_COST = 200.0f;
-	const GLfloat GRAPPLE_DURATION = 5.0f;
+	const GLfloat GRAPPLE_SPEED = 1500.0f;
+	const GLfloat GRAPPLE_COST = 350.0f;
+	const GLfloat GRAPPLE_DURATION = 3.0f;
 	const GLfloat GRAPPLE_PULL_STRENGTH = 10.0f;
 
 	// player

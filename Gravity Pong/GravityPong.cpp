@@ -52,8 +52,12 @@ void GravityPong::init() {
 	ResourceManager::loadTexture( "explosion.png", GL_TRUE, "explosion" );
 	ResourceManager::loadTexture( "smoke.png", GL_TRUE, "smoke" );
 	ResourceManager::loadTexture( "leech.png", GL_TRUE, "leech" );
-	ResourceManager::loadTexture( "anchor.png", GL_TRUE, "anchor" );
-	ResourceManager::loadTexture( "link.png", GL_FALSE, "link" );
+	ResourceManager::loadTexture( "alien_anchor.png", GL_TRUE, "alien_anchor" );
+	ResourceManager::loadTexture( "alien_link.png", GL_TRUE, "alien_link" );
+	ResourceManager::loadTexture("alien_sticker.png", GL_TRUE, "alien_sticker");
+	ResourceManager::loadTexture("tech_anchor.png", GL_TRUE, "tech_anchor");
+	ResourceManager::loadTexture("tech_link.png", GL_TRUE, "tech_link");
+	ResourceManager::loadTexture("tech_sticker.png", GL_TRUE, "tech_sticker");
 	ResourceManager::loadTexture( "black_color.png", GL_FALSE, "black" );
 	ResourceManager::loadTexture( "green_color.png", GL_FALSE, "green" );
 	ResourceManager::loadTexture( "purple_color.png", GL_FALSE, "purple" );
@@ -593,7 +597,7 @@ void GravityPong::handleCollisions() {
 
 	// check for grapple collision with target
 	if( p1Grapple != nullptr && p1Grapple->isAlive ) {
-		Collision collision = checkBallRectCollision( p1Grapple->anchors[GrappleAttack::NUM_ANCHORS - 1], *p1Grapple->target );
+		Collision collision = checkBallRectCollision( p1Grapple->anchors.front(), *p1Grapple->target );
 		if( std::get<0>( collision ) ) {
 			p1Grapple->attachToTarget();
 		}
@@ -603,7 +607,7 @@ void GravityPong::handleCollisions() {
 		p1Grapple = nullptr;
 	}
 	if( p2Grapple != nullptr && p2Grapple->isAlive ) {
-		Collision collision = checkBallRectCollision( p2Grapple->anchors[GrappleAttack::NUM_ANCHORS - 1], *p2Grapple->target );
+		Collision collision = checkBallRectCollision( p2Grapple->anchors.front(), *p2Grapple->target );
 		if( std::get<0>( collision ) ) {
 			p2Grapple->attachToTarget();
 		}

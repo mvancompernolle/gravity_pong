@@ -11,7 +11,7 @@ void keyCallBack( GLFWwindow* window, int key, int scanCode, int action, int mod
 // declare callbacks for GLFW
 GLuint SCREEN_WIDTH = 1920;
 GLuint SCREEN_HEIGHT = 1080;
-const GLboolean FULL_SCREEN = GL_TRUE;
+const GLboolean FULL_SCREEN = GL_FALSE;
 
 Game* game = nullptr;
 
