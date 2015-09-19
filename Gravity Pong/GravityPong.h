@@ -48,6 +48,7 @@ enum PUNISHMENT_TYPE {
 	INVERSE,
 	TRAIL,
 	BLIND,
+	FLIP,
 	NUM_PUNISHMENTS
 };
 
@@ -87,7 +88,7 @@ struct Punishment {
 			charges = 3;
 			break;
 		case INVERSE:
-			timeLeft = 5.0f;
+			timeLeft = 10.0f;
 			charges = 0;
 			break;
 		case TRAIL:
@@ -97,6 +98,11 @@ struct Punishment {
 		case BLIND:
 			timeLeft = 10.0f;
 			charges = 0;
+			break;
+		case FLIP:
+			timeLeft = 10.0f;
+			charges = 0;
+			break;
 		}
 	}
 
@@ -119,6 +125,9 @@ struct Punishment {
 			break;
 		case BLIND:
 			return "Blind";
+			break;
+		case FLIP:
+			return "Flip";
 			break;
 		}
 	}

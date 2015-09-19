@@ -2,8 +2,14 @@
 
 #include <iostream>
 
-PostProcessor::PostProcessor( Shader shader, GLuint width, GLuint height )
-	: shader( shader ), texture(), width( width ), height( height ), blind( GL_FALSE ), blindedPlayer( nullptr ) {
+PostProcessor::PostProcessor( GLuint width, GLuint height )
+	: texture(), width( width ), height( height ), blind( GL_FALSE ), flip( GL_FALSE ), blindedPlayer( nullptr ) {
+
+	// load shader effects
+	defaultShader = ResourceManager::loadShader( "pp_default.vs", "pp_default.fs", nullptr, "defualtPostProcessor" );
+	blindShader = ResourceManager::loadShader( "pp_default.vs", "pp_blind.fs", nullptr, "blindShader" );
+	flipShader = ResourceManager::loadShader( "pp_default.vs", "pp_flip.fs", nullptr, "flipShader" );
+
 	// initialize FBO's
 	glGenFramebuffers( 1, &MSFBO );
 	glGenFramebuffers( 1, &FBO );
@@ -30,8 +36,13 @@ PostProcessor::PostProcessor( Shader shader, GLuint width, GLuint height )
 
 	// initialize render data and uniforms
 	initRenderData();
-	shader.use();
-	shader.setInteger( "scene", 0 );
+	defaultShader.use();
+	defaultShader.setInteger( "scene", 0 );
+	blindShader.use();
+	blindShader.setInteger( "scene", 0 );
+	flipShader.use();
+	flipShader.setInteger( "scene", 0 );
+	flipShader.setFloat( "maxWidth", width );
 }
 
 PostProcessor::~PostProcessor() {
@@ -54,11 +65,14 @@ void PostProcessor::endRender() {
 }
 
 void PostProcessor::render( GLfloat time ) {
-	// Set uniforms/options
-	shader.use();
-	shader.setInteger( "blind", blind );
+	// setup appropriate post effects shader
 	if ( blind ) {
-		shader.setVector2f( "playerPos", glm::vec2( blindedPlayer->getCenter().x, height - blindedPlayer->getCenter().y ) );
+		blindShader.use();
+		blindShader.setVector2f( "playerPos", glm::vec2( blindedPlayer->getCenter().x, height - blindedPlayer->getCenter().y ) );
+	} else if ( flip ) {
+		flipShader.use();
+	} else {
+		defaultShader.use();
 	}
 	// render textured quad
 	glActiveTexture( GL_TEXTURE0 );
@@ -95,13 +109,24 @@ void PostProcessor::initRenderData() {
 }
 
 void PostProcessor::blindPlayer( const GameObject& player, GLfloat blindRange, glm::vec2 heightRange ) {
+	clearEffects();
 	blind = GL_TRUE;
 	blindedPlayer = &player;
-	shader.setVector2f( "heightRange", heightRange - heightRange.x );
-	shader.setFloat( "visionRadius", blindRange );
+	blindShader.use();
+	blindShader.setVector2f( "heightRange", heightRange - heightRange.x );
+	blindShader.setFloat( "visionRadius", blindRange );
+}
+
+void PostProcessor::flipScreen( glm::vec2 widthRange, glm::vec2 heightRange ) {
+	clearEffects();
+	flip = GL_TRUE;
+	flipShader.use();
+	flipShader.setVector2f( "widthRange", widthRange );
+	flipShader.setVector2f( "heightRange", heightRange - heightRange.x );
 }
 
 void PostProcessor::clearEffects() {
 	blind = GL_FALSE;
+	flip = GL_FALSE;
 	blindedPlayer = nullptr;
 }

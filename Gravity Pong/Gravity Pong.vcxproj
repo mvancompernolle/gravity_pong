@@ -142,6 +142,7 @@
     <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="pp_flip.fs" />
     <None Include="FreeImaged.dll" />
     <None Include="FreeImagePlusd.dll" />
     <None Include="glew32.dll" />
@@ -149,8 +150,9 @@
     <None Include="ikpFlac.dll" />
     <None Include="ikpMP3.dll" />
     <None Include="irrKlang.dll" />
-    <None Include="post_effects.fs" />
-    <None Include="post_effects.vs" />
+    <None Include="pp_blind.fs" />
+    <None Include="pp_default.fs" />
+    <None Include="pp_default.vs" />
     <None Include="sprite.fs" />
     <None Include="sprite.vs" />
     <None Include="text.fs" />

@@ -243,12 +243,6 @@
     <None Include="ikpFlac.dll" />
     <None Include="ikpMP3.dll" />
     <None Include="irrKlang.dll" />
-    <None Include="post_effects.fs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="post_effects.vs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
     <None Include="sprite.fs">
       <Filter>Resource Files\shaders</Filter>
     </None>
@@ -265,6 +259,18 @@
     <None Include="FreeImaged.dll" />
     <None Include="glew32.dll" />
     <None Include="glew32d.dll" />
+    <None Include="pp_blind.fs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="pp_default.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="pp_default.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="pp_flip.fs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Font Include="OCRAEXT.TTF">

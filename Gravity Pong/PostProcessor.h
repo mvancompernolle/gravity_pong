@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+#include "ResourceManager.h"
 #include "Texture.h"
 #include "SpriteRenderer.h"
 #include "Shader.h"
@@ -13,22 +14,23 @@
 
 class PostProcessor {
 public:
-	Shader				shader;
 	Texture				texture;
 	GLuint				width, height;
 
-						PostProcessor( Shader shader, GLuint width, GLuint height );
+						PostProcessor( GLuint width, GLuint height );
 						~PostProcessor();
 	void				beginRender();
 	void				endRender();
 	void				render( GLfloat time );
 	void				blindPlayer( const GameObject& player, GLfloat blindRange, glm::vec2 heightRange );
+	void				flipScreen( glm::vec2 widthRange, glm::vec2 heightRange );
 	void				clearEffects();
 private:
 	GLuint				MSFBO, FBO;
 	GLuint				RBO;
 	GLuint				VAO;
-	GLboolean			blind;
+	GLboolean			blind, flip;
+	Shader				defaultShader, blindShader, flipShader;
 	const GameObject*	blindedPlayer;
 
 	void	initRenderData();

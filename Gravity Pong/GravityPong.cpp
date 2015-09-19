@@ -27,7 +27,6 @@ GravityPong::~GravityPong() {
 void GravityPong::init() {
 	// load shaders
 	ResourceManager::loadShader( "sprite.vs", "sprite.fs", nullptr, "sprite" );
-	ResourceManager::loadShader( "post_effects.vs", "post_effects.fs", nullptr, "postProcessor" );
 
 	// configure shaders
 	glm::mat4 projection = glm::ortho( 0.0f, static_cast<GLfloat>( width ),
@@ -81,6 +80,7 @@ void GravityPong::init() {
 	ResourceManager::loadTexture( "abuse_punishment.png", GL_TRUE, "abuse_punishment" );
 	ResourceManager::loadTexture( "inverse_punishment.png", GL_TRUE, "inverse_punishment" );
 	ResourceManager::loadTexture( "trail_punishment.png", GL_TRUE, "trail_punishment" );
+	ResourceManager::loadTexture( "blind_punishment.png", GL_TRUE, "blind_punishment" );
 
 	// create player paddles
 	glm::vec2 playerPos = glm::vec2( 0.0f, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
@@ -96,7 +96,7 @@ void GravityPong::init() {
 
 	// create renderers
 	spriteRenderer = new SpriteRenderer( ResourceManager::getShader( "sprite" ) );
-	postEffectsRenderer = new PostProcessor( ResourceManager::getShader( "postProcessor" ), width, height );
+	postEffectsRenderer = new PostProcessor( width, height );
 	particlesRenderer = new ParticleGenerator( ResourceManager::getTexture( "smoke" ), 500, 20.0f );
 	textRenderer = new TextRenderer( width, height );
 	textRenderer->load( "ocraext.TTF", 24 );
@@ -965,7 +965,10 @@ void GravityPong::renderGUI() const {
 		image = ResourceManager::getTexture( "abuse_punishment" );
 		break;
 	case BLIND:
-		image = ResourceManager::getTexture( "abuse_punishment" );
+		image = ResourceManager::getTexture( "blind_punishment" );
+		break;
+	case FLIP:
+		image = ResourceManager::getTexture( "blind_punishment" );
 		break;
 	}
 
@@ -1209,6 +1212,13 @@ void GravityPong::dealPunishment() {
 			postEffectsRenderer->blindPlayer( *player2, BLIND_RANGE, heightRange );
 		}
 		break;
+	case FLIP:
+		if ( punishment.paddle == player1 ) {
+			postEffectsRenderer->flipScreen( glm::vec2( 0.0f, width / 3.0f ), heightRange );
+		} else {
+			postEffectsRenderer->flipScreen( glm::vec2( width / 3.0f * 2.0f, width ), heightRange );
+		}
+		break;
 	}
 }
 
@@ -1216,16 +1226,15 @@ void GravityPong::clearPunishment() {
 	if ( punishment.player != NO_ONE ) {
 		switch ( punishment.type ) {
 		case SLOW:
+		case INVERSE:
 			punishment.paddle->speed = PADDLE_SPEED;
 			break;
 		case SHRINK:
 			punishment.paddle->pos.y -= SHRINK_AMOUNT / 2.0f * PADDLE_SIZE.y;
 			punishment.paddle->size.y = PADDLE_SIZE.y;
 			break;
-		case INVERSE:
-			punishment.paddle->speed = PADDLE_SPEED;
-			break;
 		case BLIND:
+		case FLIP:
 			postEffectsRenderer->clearEffects();
 			break;
 		}
@@ -1234,7 +1243,7 @@ void GravityPong::clearPunishment() {
 	}
 	// randomly selected the next punishment
 	nextPunishmentCountdown = PUNISHMENT_COUNTDOWN;
-	int randomPunishment = NUM_PUNISHMENTS - 1;//rand() % NUM_PUNISHMENTS;
+	int randomPunishment = rand() % NUM_PUNISHMENTS;
 	nextPunishmentType = (PUNISHMENT_TYPE)randomPunishment;
 }
 
