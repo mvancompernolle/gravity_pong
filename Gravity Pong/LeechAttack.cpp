@@ -1,9 +1,9 @@
 #include "LeechAttack.h"
 #include <iostream>
 
-LeechAttack::LeechAttack( glm::vec2 pos, GLfloat radius, Texture sprite, glm::vec2 dir, GameObject* target, GLfloat leechAmount, GLfloat duration ) 
-	: BallObject( pos, radius, sprite, dir ), amountLeeched( 0.0f ), MAX_LEECH_AMOUNT( leechAmount ), LAUNCH_DIRECTION( dir ), timeLeft( duration ), target( target ), isAlive( GL_TRUE ), isAttached( GL_FALSE ),
-	STARTING_RADIUS( radius ), MAX_RADIUS ( radius * 2.0f ), desiredRotation( 0.0f ), TURN_RATE( 90.0f ), isReturning( GL_FALSE ){
+LeechAttack::LeechAttack( glm::vec2 pos, glm::vec2 size, Texture sprite, glm::vec2 dir, GameObject* target, GLfloat leechAmount, GLfloat duration )
+	: GameObject( pos, size, sprite, glm::vec4( 1.0f ), dir ), amountLeeched( 0.0f ), MAX_LEECH_AMOUNT( leechAmount ), LAUNCH_DIRECTION( dir ), timeLeft( duration ), target( target ), isAlive( GL_TRUE ), isAttached( GL_FALSE ),
+	STARTING_SIZE( size ), MAX_SIZE ( size * 1.5f ), desiredRotation( 0.0f ), TURN_RATE( 90.0f ), isReturning( GL_FALSE ){
 	if ( LAUNCH_DIRECTION.x < 0 ) {
 		desiredRotation = 180.0f;
 		rotation = 180.0f;
@@ -70,11 +70,12 @@ void LeechAttack::attachLeech(){
 	vel = glm::vec2( 0.0f );
 }
 
-void LeechAttack::detachLeech(){
+void LeechAttack::detachLeech() {
 	isAttached = GL_FALSE;
 	isReturning = GL_TRUE;
-	offset = glm::vec2( 0.0f );
-	vel = -LAUNCH_DIRECTION;
+	offset = glm::vec2(0.0f);
+	vel = -LAUNCH_DIRECTION / 2.0f;
+	rotation = LAUNCH_DIRECTION.x > 0 ? 180.0f : 0.0f;
 }
 
 GLfloat LeechAttack::addEnergy( const GLfloat energy ){
@@ -83,13 +84,21 @@ GLfloat LeechAttack::addEnergy( const GLfloat energy ){
 	if ( amountLeeched > MAX_LEECH_AMOUNT ) {
 		leftOverEnergy = amountLeeched - MAX_LEECH_AMOUNT;
 		amountLeeched = MAX_LEECH_AMOUNT;
+		size.x -= abs(sin(timeLeft * 10.0f) * size.x * STRETCH_AMOUNT);
 		detachLeech();
 	}
 
 	// calculate radius based on energy
-	radius = STARTING_RADIUS + ( amountLeeched / MAX_LEECH_AMOUNT ) * ( MAX_RADIUS - STARTING_RADIUS );
-	pos = getCenter() - radius;
-	size = glm::vec2( radius * 2.0f );
+	glm::vec2 newSize = STARTING_SIZE + ( amountLeeched / MAX_LEECH_AMOUNT ) * ( MAX_SIZE - STARTING_SIZE );
+	newSize.x += abs(sin(timeLeft * 10.0f) * size.x * STRETCH_AMOUNT );
+	if (LAUNCH_DIRECTION.x < 0) {
+		pos = glm::vec2(pos.x, pos.y - (newSize.y - size.y) / 2.0f);
+	}
+	else {
+		pos = glm::vec2(pos.x - (newSize.x - size.x), pos.y - (newSize.y - size.y) / 2.0f);
+	}
+	size = newSize;
+
 
 	if ( isAttached ) {
 		offset = target->pos - pos;

@@ -24,24 +24,23 @@ class ParticleGenerator {
 public:
 	GLfloat					particleSize;
 
-							ParticleGenerator( Shader shader, Texture texture, GLuint amount, GLfloat particleSize = 10.0f );
+							ParticleGenerator( Texture texture, GLuint amount, GLfloat particleSize = 10.0f );
 							~ParticleGenerator();
-	void					addParticles( GameObject object, GLuint newParticles, glm::vec2 offset = glm::vec2( 0.0f, 0.0f ), GLfloat rotation = 0.0f);
+	void					addParticles( glm::vec2 pos, GLuint newParticles, glm::vec3 color = glm::vec3( 1.0f ), GLfloat rotation = 0.0f);
 	void					update( GLfloat dt );
-	void					draw();
+	void					draw( SpriteRenderer& renderer );
 	std::vector<Particle>	getParticles() const;
 
 private:
 	std::vector<Particle>	particles;
 	GLuint					amount;
-	Shader					shader;
 	GLuint					VAO;
 	Texture					texture;
 	GLuint					lastUsedParticle;
 	
 	void	init();
 	GLuint	firstUnusedParticle();
-	void	respawnParticle( Particle& particle, const GameObject& object, const glm::vec2 offset = glm::vec2( 0.0f, 0.0f ), const GLfloat rotation = 0.0f );
+	void	respawnParticle( Particle& particle, const glm::vec2 pos, const glm::vec3 color, const GLfloat rotation = 0.0f );
 };
 
 #endif // PARTICLE_GENERATOR_H

@@ -149,8 +149,6 @@
     <None Include="ikpFlac.dll" />
     <None Include="ikpMP3.dll" />
     <None Include="irrKlang.dll" />
-    <None Include="particle.fs" />
-    <None Include="particle.vs" />
     <None Include="post_effects.fs" />
     <None Include="post_effects.vs" />
     <None Include="sprite.fs" />

@@ -47,6 +47,7 @@ enum PUNISHMENT_TYPE {
 	ABUSE, 
 	INVERSE,
 	TRAIL,
+	BLIND,
 	NUM_PUNISHMENTS
 };
 
@@ -90,9 +91,12 @@ struct Punishment {
 			charges = 0;
 			break;
 		case TRAIL:
-			timeLeft = 7.0f;
-			charges = 7;
+			timeLeft = 5.0f;
+			charges = 5;
 			break;
+		case BLIND:
+			timeLeft = 10.0f;
+			charges = 0;
 		}
 	}
 
@@ -112,6 +116,9 @@ struct Punishment {
 			break;
 		case TRAIL:
 			return "Trail";
+			break;
+		case BLIND:
+			return "Blind";
 			break;
 		}
 	}
@@ -144,9 +151,9 @@ public:
 	const glm::vec2 MISSILE_SIZE;
 
 	// leech
-	const GLfloat LEECH_RADIUS = 20.0f;
+	const glm::vec2 LEECH_SIZE = glm::vec2( 40.0f, 20.0f );
 	const GLfloat LEECH_SPEED;
-	const GLuint LEECH_COST = 200.0f;
+	const GLuint LEECH_COST = 150.0f;
 
 	// grapple
 	const GLfloat GRAPPLE_ANCHOR_RADIUS = 20.0f;
@@ -165,8 +172,9 @@ public:
 	const glm::vec2 PADDLE_SIZE;
 
 	// punishments
-	const GLfloat PUNISHMENT_COUNTDOWN = 7.0f;
+	const GLfloat PUNISHMENT_COUNTDOWN = 10.0f;
 	const GLfloat SHRINK_AMOUNT = 0.65;
+	const GLfloat BLIND_RANGE = 400.0f;
 
 			GravityPong( GLuint width, GLuint height );
 			~GravityPong();

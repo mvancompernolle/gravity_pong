@@ -11,7 +11,9 @@ std::map<std::string, Texture> ResourceManager::textures;
 std::map<std::string, Shader> ResourceManager::shaders;
 
 Shader ResourceManager::loadShader(const GLchar* vShaderFile, const GLchar* fShaderFile, const GLchar* gShaderFile, std::string name) {
-	shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
+	if (shaders.count(name) == 0) {
+		shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
+	}
 	return shaders[name];
 }
 
@@ -23,7 +25,9 @@ Shader ResourceManager::getShader(std::string name) {
 }
 
 Texture ResourceManager::loadTexture(const GLchar* file, GLboolean alpha, std::string name) {
-	textures[name] = loadTextureFromFile(file, alpha);
+	if (textures.count(name) == 0) {
+		textures[name] = loadTextureFromFile(file, alpha);
+	}
 	return textures[name];
 }
 

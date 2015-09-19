@@ -9,7 +9,7 @@ const float PI = 3.14159265358;
 GravityPong::GravityPong( GLuint width, GLuint height )
 	: Game( width, height ), state( GAME_OVER ), p1Lives( NUM_LIVES ), p2Lives( NUM_LIVES ), heightRange( GUI_PERCENT * height, height ), p1BounceCooldown( 0.0f ), p2BounceCooldown( 0.0f ),
 	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
-	MISSILE_SIZE( height / 20.0f, height / 40.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), p1IsGravReversed( GL_FALSE ), p2IsGravReversed( GL_FALSE ), inRetroMode( GL_FALSE ),
+	MISSILE_SIZE( height / 15.0f, height / 30.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), p1IsGravReversed( GL_FALSE ), p2IsGravReversed( GL_FALSE ), inRetroMode( GL_FALSE ),
 	LEECH_SPEED( width ) {
 	init();
 }
@@ -27,7 +27,6 @@ GravityPong::~GravityPong() {
 void GravityPong::init() {
 	// load shaders
 	ResourceManager::loadShader( "sprite.vs", "sprite.fs", nullptr, "sprite" );
-	ResourceManager::loadShader( "particle.vs", "particle.fs", nullptr, "particle" );
 	ResourceManager::loadShader( "post_effects.vs", "post_effects.fs", nullptr, "postProcessor" );
 
 	// configure shaders
@@ -36,28 +35,29 @@ void GravityPong::init() {
 
 	ResourceManager::getShader( "sprite" ).use().setInteger( "image", 0 );
 	ResourceManager::getShader( "sprite" ).setMatrix4( "projection", projection );
-	ResourceManager::getShader( "particle" ).use().setInteger( "sprite", 0 );
-	ResourceManager::getShader( "particle" ).setMatrix4( "projection", projection );
 
 	// load textures
 	ResourceManager::loadTexture( "background2.jpg", GL_TRUE, "background" );
 	ResourceManager::loadTexture( "paddle.png", GL_TRUE, "paddle" );
-	ResourceManager::loadTexture("alien_paddle.png", GL_TRUE, "alien_paddle");
-	ResourceManager::loadTexture("tech_paddle.png", GL_TRUE, "tech_paddle");
+	ResourceManager::loadTexture( "alien_paddle.png", GL_TRUE, "alien_paddle" );
+	ResourceManager::loadTexture( "tech_paddle.png", GL_TRUE, "tech_paddle" );
 	ResourceManager::loadTexture( "ball.png", GL_TRUE, "ball" );
 	ResourceManager::loadTexture( "arrow_green.png", GL_TRUE, "green_arrow" );
 	ResourceManager::loadTexture( "gravity_ball2.png", GL_TRUE, "gravity_ball" );
-	ResourceManager::loadTexture("repulsion_ball.png", GL_TRUE, "repulsion_ball");
-	ResourceManager::loadTexture( "missile.png", GL_TRUE, "missile" );
-	ResourceManager::loadTexture( "explosion.png", GL_TRUE, "explosion" );
+	ResourceManager::loadTexture( "repulsion_ball.png", GL_TRUE, "repulsion_ball" );
+	ResourceManager::loadTexture( "tech_missile.png", GL_TRUE, "tech_missile" );
+	ResourceManager::loadTexture( "alien_missile.png", GL_TRUE, "alien_missile" );
+	ResourceManager::loadTexture( "alien_explosion.png", GL_TRUE, "alien_explosion" );
+	ResourceManager::loadTexture( "tech_explosion.png", GL_TRUE, "tech_explosion" );
 	ResourceManager::loadTexture( "smoke.png", GL_TRUE, "smoke" );
-	ResourceManager::loadTexture( "leech.png", GL_TRUE, "leech" );
+	ResourceManager::loadTexture( "alien_leech.png", GL_TRUE, "alien_leech" );
+	ResourceManager::loadTexture( "tech_leech.png", GL_TRUE, "tech_leech" );
 	ResourceManager::loadTexture( "alien_anchor.png", GL_TRUE, "alien_anchor" );
 	ResourceManager::loadTexture( "alien_link.png", GL_TRUE, "alien_link" );
-	ResourceManager::loadTexture("alien_sticker.png", GL_TRUE, "alien_sticker");
-	ResourceManager::loadTexture("tech_anchor.png", GL_TRUE, "tech_anchor");
-	ResourceManager::loadTexture("tech_link.png", GL_TRUE, "tech_link");
-	ResourceManager::loadTexture("tech_sticker.png", GL_TRUE, "tech_sticker");
+	ResourceManager::loadTexture( "alien_sticker.png", GL_TRUE, "alien_sticker" );
+	ResourceManager::loadTexture( "tech_anchor.png", GL_TRUE, "tech_anchor" );
+	ResourceManager::loadTexture( "tech_link.png", GL_TRUE, "tech_link" );
+	ResourceManager::loadTexture( "tech_sticker.png", GL_TRUE, "tech_sticker" );
 	ResourceManager::loadTexture( "black_color.png", GL_FALSE, "black" );
 	ResourceManager::loadTexture( "green_color.png", GL_FALSE, "green" );
 	ResourceManager::loadTexture( "purple_color.png", GL_FALSE, "purple" );
@@ -97,7 +97,7 @@ void GravityPong::init() {
 	// create renderers
 	spriteRenderer = new SpriteRenderer( ResourceManager::getShader( "sprite" ) );
 	postEffectsRenderer = new PostProcessor( ResourceManager::getShader( "postProcessor" ), width, height );
-	particlesRenderer = new ParticleGenerator( ResourceManager::getShader( "particle" ), ResourceManager::getTexture( "smoke" ), 500, 20.0f );
+	particlesRenderer = new ParticleGenerator( ResourceManager::getTexture( "smoke" ), 500, 20.0f );
 	textRenderer = new TextRenderer( width, height );
 	textRenderer->load( "ocraext.TTF", 24 );
 
@@ -112,147 +112,145 @@ void GravityPong::init() {
 
 	// random select first punishment
 	int randomPunishment = rand() % NUM_PUNISHMENTS;
-	nextPunishmentType = (PUNISHMENT_TYPE) randomPunishment;
+	nextPunishmentType = (PUNISHMENT_TYPE)randomPunishment;
 }
 
 void GravityPong::processInput( const GLfloat dt ) {
-	if( keys[GLFW_KEY_SPACE] && !keysProcessed[GLFW_KEY_SPACE] ) {
+	if ( keys[GLFW_KEY_SPACE] && !keysProcessed[GLFW_KEY_SPACE] ) {
 		keysProcessed[GLFW_KEY_SPACE] = GL_TRUE;
 		inRetroMode = !inRetroMode;
 	}
 
-	if( keys[GLFW_KEY_P] && !keysProcessed[GLFW_KEY_P] ) {
-		if( state == GAME_PAUSED ) {
+	if ( keys[GLFW_KEY_P] && !keysProcessed[GLFW_KEY_P] ) {
+		if ( state == GAME_PAUSED ) {
 			state = GAME_ACTIVE;
-		} else if( state == GAME_ACTIVE ) {
+		} else if ( state == GAME_ACTIVE ) {
 			state = GAME_PAUSED;
 		}
 		keysProcessed[GLFW_KEY_P] = GL_TRUE;
 	}
 
-	if( state == GAME_ACTIVE ) {
+	if ( state == GAME_ACTIVE ) {
 		// movement keys
-		if( keys[GLFW_KEY_W] ) {
+		if ( keys[GLFW_KEY_W] ) {
 			player1->move( PADDLE_UP );
 		}
-		if( keys[GLFW_KEY_S] ) {
+		if ( keys[GLFW_KEY_S] ) {
 			player1->move( PADDLE_DOWN );
 		}
-		if( keys[GLFW_KEY_UP] ) {
+		if ( keys[GLFW_KEY_UP] ) {
 			player2->move( PADDLE_UP );
 		}
-		if( keys[GLFW_KEY_DOWN] ) {
+		if ( keys[GLFW_KEY_DOWN] ) {
 			player2->move( PADDLE_DOWN );
 		}
 		// used for gravity balls
-		if( keys[GLFW_KEY_D] ) {
-			if( p1ChargingGravBall == nullptr && p1Energy >= GRAV_BALL_COST ) {
-				Texture ballTex = p1IsGravReversed ? ResourceManager::getTexture("repulsion_ball") : ResourceManager::getTexture("gravity_ball");
-				p1ChargingGravBall = new GravityBall(glm::vec2(player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f);
+		if ( keys[GLFW_KEY_D] ) {
+			if ( p1ChargingGravBall == nullptr && p1Energy >= GRAV_BALL_COST ) {
+				Texture ballTex = p1IsGravReversed ? ResourceManager::getTexture( "repulsion_ball" ) : ResourceManager::getTexture( "gravity_ball" );
+				p1ChargingGravBall = new GravityBall( glm::vec2( player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f );
 				p1ChargingGravBall->setReversed( p1IsGravReversed );
 				p1Energy -= GRAV_BALL_COST;
-			} else if( p1ChargingGravBall != nullptr ) {
+			} else if ( p1ChargingGravBall != nullptr ) {
 				p1ChargingGravBall->growBall( dt, p1Energy );
 				p1ChargingGravBall->pos = glm::vec2( player1->size.x, player1->getCenter().y - p1ChargingGravBall->radius );
 			}
 		}
-		if( keys[GLFW_KEY_LEFT] ) {
-			if( p2ChargingGravBall == nullptr && p2Energy >= GRAV_BALL_COST ) {
-				Texture ballTex = p2IsGravReversed ? ResourceManager::getTexture("repulsion_ball") : ResourceManager::getTexture("gravity_ball");
+		if ( keys[GLFW_KEY_LEFT] ) {
+			if ( p2ChargingGravBall == nullptr && p2Energy >= GRAV_BALL_COST ) {
+				Texture ballTex = p2IsGravReversed ? ResourceManager::getTexture( "repulsion_ball" ) : ResourceManager::getTexture( "gravity_ball" );
 				p2ChargingGravBall = new GravityBall( glm::vec2( width - player2->size.x - GRAV_STARTING_RADIUS * 2.0f, player2->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f );
 				p2ChargingGravBall->setReversed( p2IsGravReversed );
 				p2Energy -= GRAV_BALL_COST;
-			} else if( p2ChargingGravBall != nullptr ) {
+			} else if ( p2ChargingGravBall != nullptr ) {
 				p2ChargingGravBall->growBall( dt, p2Energy );
 				p2ChargingGravBall->pos = glm::vec2( width - player2->size.x - p2ChargingGravBall->size.x, player2->getCenter().y - p2ChargingGravBall->radius );
 			}
 		}
-		if( keys[GLFW_KEY_A] ) {
+		if ( keys[GLFW_KEY_A] ) {
 			// set the selected gravityBall to collapse
 			GravityBall* gravPtr = findSelectedGravBall( P1_SELECTED );
-			if( gravPtr != nullptr ) {
+			if ( gravPtr != nullptr ) {
 				gravPtr->isCollapsing = GL_TRUE;
 				gravPtr->selectedBy = NO_ONE;
 			}
 		}
-		if( keys[GLFW_KEY_RIGHT] ) {
+		if ( keys[GLFW_KEY_RIGHT] ) {
 			// set the selected gravityBall to collapse
 			GravityBall* gravPtr = findSelectedGravBall( P2_SELECTED );
-			if( gravPtr != nullptr ) {
+			if ( gravPtr != nullptr ) {
 				gravPtr->isCollapsing = GL_TRUE;
 				gravPtr->selectedBy = NO_ONE;
 			}
 		}
 		// fires and detonates missiles
-		if( keys[GLFW_KEY_E] ) {
-			if( p1Missile == nullptr && p1Energy >= MISSILE_COST && p1MissileCooldown <= 0.0f ) {
-				p1Missile = new Missile( glm::vec2( player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "missile" ), ball );
+		if ( keys[GLFW_KEY_E] ) {
+			if ( p1Missile == nullptr && p1Energy >= MISSILE_COST && p1MissileCooldown <= 0.0f ) {
+				p1Missile = new Missile( glm::vec2( player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "tech_missile" ), ball );
 				p1Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
-				p1Missile->color = glm::vec4( 0.5f, 1.0f, 0.5f, 1.0f );
 				p1Energy -= MISSILE_COST;
 				keysProcessed[GLFW_KEY_E] = GL_TRUE;
-			} else if( p1Missile != nullptr && !keysProcessed[GLFW_KEY_E] ) {
+			} else if ( p1Missile != nullptr && !keysProcessed[GLFW_KEY_E] ) {
 				causeMissileExplosion( *p1Missile );
 				deleteMissile( p1Missile );
 			}
 		}
-		if( keys[GLFW_KEY_KP_0] ) {
-			if( p2Missile == nullptr && p2Energy >= MISSILE_COST && p2MissileCooldown <= 0.0f ) {
-				p2Missile = new Missile( glm::vec2( player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "missile" ), ball, 180.0f );
+		if ( keys[GLFW_KEY_KP_0] ) {
+			if ( p2Missile == nullptr && p2Energy >= MISSILE_COST && p2MissileCooldown <= 0.0f ) {
+				p2Missile = new Missile( glm::vec2( player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "alien_missile" ), ball, 180.0f );
 				p2Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
-				p2Missile->color = glm::vec4( 0.5f, 0.7f, 1.0f, 1.0f );
 				p2Energy -= MISSILE_COST;
 				keysProcessed[GLFW_KEY_KP_0] = GL_TRUE;
-			} else if( p2Missile != nullptr && !keysProcessed[GLFW_KEY_KP_0] ) {
+			} else if ( p2Missile != nullptr && !keysProcessed[GLFW_KEY_KP_0] ) {
 				causeMissileExplosion( *p2Missile );
 				deleteMissile( p2Missile );
 			}
 		}
 		// toggles between repulsion and gravity balls
-		if( keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q] ) {
+		if ( keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q] ) {
 			p1IsGravReversed = !p1IsGravReversed;
 			keysProcessed[GLFW_KEY_Q] = GL_TRUE;
 		}
-		if( keys[GLFW_KEY_KP_1] && !keysProcessed[GLFW_KEY_KP_1] ) {
+		if ( keys[GLFW_KEY_KP_1] && !keysProcessed[GLFW_KEY_KP_1] ) {
 			p2IsGravReversed = !p2IsGravReversed;
 			keysProcessed[GLFW_KEY_KP_1] = GL_TRUE;
 		}
 		// shoot leech
-		if( keys[GLFW_KEY_C] && !keysProcessed[GLFW_KEY_C] ) {
-			if( p1Energy >= LEECH_COST ) {
-				LeechAttack leech( glm::vec2( player1->pos.x + 1.5f * player1->size.x - LEECH_RADIUS, player1->getCenter().y - LEECH_RADIUS ),
-					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( LEECH_SPEED, 0.0f ), player2 );
+		if ( keys[GLFW_KEY_C] && !keysProcessed[GLFW_KEY_C] ) {
+			if ( p1Energy >= LEECH_COST ) {
+				LeechAttack leech( glm::vec2( player1->pos.x + 1.5f * player1->size.x - LEECH_SIZE.x / 2.0f, player1->getCenter().y - LEECH_SIZE.x / 2.0f ),
+					LEECH_SIZE, ResourceManager::getTexture( "tech_leech" ), glm::vec2( LEECH_SPEED, 0.0f ), player2 );
 				leechAttacks.push_back( leech );
 				p1Energy -= LEECH_COST;
 				keysProcessed[GLFW_KEY_C] = GL_TRUE;
 			}
 		}
-		if( keys[GLFW_KEY_RIGHT_CONTROL] && !keysProcessed[GLFW_KEY_RIGHT_CONTROL] ) {
-			if( p2Energy >= LEECH_COST ) {
-				LeechAttack leech( glm::vec2( player2->pos.x - 0.5f * player2->size.x - LEECH_RADIUS, player2->getCenter().y - LEECH_RADIUS ),
-					LEECH_RADIUS, ResourceManager::getTexture( "leech" ), glm::vec2( -LEECH_SPEED, 0.0f ), player1 );
+		if ( keys[GLFW_KEY_RIGHT_CONTROL] && !keysProcessed[GLFW_KEY_RIGHT_CONTROL] ) {
+			if ( p2Energy >= LEECH_COST ) {
+				LeechAttack leech( glm::vec2( player2->pos.x - 0.5f * player2->size.x - LEECH_SIZE.x / 2.0f, player2->getCenter().y - LEECH_SIZE.x / 2.0f ),
+					LEECH_SIZE, ResourceManager::getTexture( "alien_leech" ), glm::vec2( -LEECH_SPEED, 0.0f ), player1 );
 				leechAttacks.push_back( leech );
 				p2Energy -= LEECH_COST;
 				keysProcessed[GLFW_KEY_RIGHT_CONTROL] = GL_TRUE;
 			}
 		}
 		// grapple attack
-		if( keys[GLFW_KEY_F] && p1Grapple == nullptr ) {
-			if( p1Energy >= GRAPPLE_COST ) {
+		if ( keys[GLFW_KEY_F] && p1Grapple == nullptr ) {
+			if ( p1Energy >= GRAPPLE_COST ) {
 				glm::vec2 pos = glm::vec2( player1->getCenter().x + player1->size.x / 2.0f - GRAPPLE_ANCHOR_RADIUS, player1->getCenter().y - GRAPPLE_ANCHOR_RADIUS );
 				p1Grapple = new GrappleAttack( player1, player2, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2( GRAPPLE_SPEED, 0.0f ), width, GRAPPLE_DURATION );
 				p1Energy -= GRAPPLE_COST;
 			}
 		}
-		if( keys[GLFW_KEY_RIGHT_SHIFT] && p2Grapple == nullptr ) {
-			if( p2Energy >= GRAPPLE_COST ) {
+		if ( keys[GLFW_KEY_RIGHT_SHIFT] && p2Grapple == nullptr ) {
+			if ( p2Energy >= GRAPPLE_COST ) {
 				glm::vec2 pos = glm::vec2( player2->pos.x - GRAPPLE_ANCHOR_RADIUS, player2->getCenter().y - GRAPPLE_ANCHOR_RADIUS );
 				p2Grapple = new GrappleAttack( player2, player1, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2( -GRAPPLE_SPEED, 0.0f ), width, GRAPPLE_DURATION );
 				p2Energy -= GRAPPLE_COST;
 			}
 		}
-	} else if( state == GAME_OVER ) {
-		if( keys[GLFW_KEY_ENTER] ) {
+	} else if ( state == GAME_OVER ) {
+		if ( keys[GLFW_KEY_ENTER] ) {
 			resetGame();
 			state = GAME_ACTIVE;
 		}
@@ -260,10 +258,10 @@ void GravityPong::processInput( const GLfloat dt ) {
 }
 
 void GravityPong::update( const GLfloat dt ) {
-	if( state == GAME_PAUSED )
+	if ( state == GAME_PAUSED )
 		return;
 
-	if( state == GAME_ACTIVE ) {
+	if ( state == GAME_ACTIVE ) {
 
 		// give players energy
 		GLfloat energy = ENERGY_PER_SECOND * dt;
@@ -279,55 +277,51 @@ void GravityPong::update( const GLfloat dt ) {
 
 		updateGravityBalls( dt );
 
-		for( Explosion& explosion : explosions ) {
+		for ( Explosion& explosion : explosions ) {
 			explosion.update( dt );
 		}
 
 		// remove explosions with no time left
-		explosions.erase( std::remove_if( explosions.begin(), explosions.end(), [&]( const Explosion& explosion ) {
+		explosions.erase( std::remove_if( explosions.begin(), explosions.end(), [&] ( const Explosion& explosion ) {
 			return explosion.timeLeft <= 0.0f;
 		} ), explosions.end() );
 
-		if( p1Missile != nullptr ) {
+		if ( p1Missile != nullptr ) {
 			p1Missile->update( dt );
-			glm::vec2 offset = glm::vec2( -p1Missile->size.x, 0.0f );
-			GLfloat tmpX = 0.0f, tmpY = 0.0f, rot = glm::radians( p1Missile->rotation );
-			tmpX = offset.x * std::cos( rot ) - offset.y * std::sin( rot );
-			tmpY = offset.x * std::sin( rot ) + offset.y * std::cos( rot );
-			particlesRenderer->addParticles( *p1Missile, 3, glm::vec2( tmpX, tmpY ) );
+			glm::vec2 rect[4];
+			p1Missile->getVertices( rect );
+			particlesRenderer->addParticles( ( rect[0] + rect[3] ) / 2.0f - particlesRenderer->particleSize / 2.0f, 3 );
 		}
-		if( p2Missile != nullptr ) {
+		if ( p2Missile != nullptr ) {
 			p2Missile->update( dt );
-			glm::vec2 offset = glm::vec2( -p2Missile->size.x / 2.0f, 0.0f );
-			GLfloat tmpX = 0.0f, tmpY = 0.0f, rot = glm::radians( p2Missile->rotation );
-			tmpX = offset.x * std::cos( rot ) - offset.y * std::sin( rot );
-			tmpY = offset.x * std::sin( rot ) + offset.y * std::cos( rot );
-			particlesRenderer->addParticles( *p2Missile, 3, glm::vec2( tmpX, tmpY ) );
+			glm::vec2 rect[4];
+			p2Missile->getVertices( rect );
+			particlesRenderer->addParticles( ( rect[0] + rect[3] ) / 2.0f - particlesRenderer->particleSize / 2.0f, 3, glm::vec3( 0.6f, 0.0f, 0.8f ) );
 		}
 		particlesRenderer->update( dt );
 
-		if( p1Grapple != nullptr ) {
+		if ( p1Grapple != nullptr ) {
 			p1Grapple->update( dt );
 		}
-		if( p2Grapple != nullptr ) {
+		if ( p2Grapple != nullptr ) {
 			p2Grapple->update( dt );
 		}
 
-		for( LeechAttack& leech : leechAttacks ) {
+		for ( LeechAttack& leech : leechAttacks ) {
 			leech.update( dt );
 		}
 
 		handleCollisions();
 
 		// check to see if ball scored
-		if( ball->pos.x < 0 || ball->pos.x + ball->size.x > width ) {
-			if( ball->pos.x < 0 ) {
+		if ( ball->pos.x < 0 || ball->pos.x + ball->size.x > width ) {
+			if ( ball->pos.x < 0 ) {
 				--p1Lives;
 			} else {
 				--p2Lives;
 			}
 			// reset the ball or end the game
-			if( p1Lives == 0 || p2Lives == 0 ) {
+			if ( p1Lives == 0 || p2Lives == 0 ) {
 				state = GAME_OVER;
 			} else {
 				glm::vec2 ballPos = glm::vec2( width / 2.0f - ball->radius, ( heightRange.y - heightRange.x ) / 2.0f - ball->radius );
@@ -339,9 +333,9 @@ void GravityPong::update( const GLfloat dt ) {
 
 		// if ball is going too slow, launch it
 		GLfloat speed = glm::length( ball->vel );
-		if( !( punishment.type == ABUSE && punishment.charges > 0 ) && !ball->isLaunching && ( std::abs( ball->vel.x ) < MIN_BALL_SPEED_X ) ) {
+		if ( !( punishment.type == ABUSE && punishment.charges > 0 ) && !ball->isLaunching && ( std::abs( ball->vel.x ) < MIN_BALL_SPEED_X ) ) {
 			ball->startLaunch();
-		} else if( speed > MAX_BALL_SPEED ) {
+		} else if ( speed > MAX_BALL_SPEED ) {
 			// if ball is going to fast slow it down
 			ball->vel = glm::vec2( glm::normalize( ball->vel ) * MAX_BALL_SPEED );
 		}
@@ -350,7 +344,7 @@ void GravityPong::update( const GLfloat dt ) {
 
 void GravityPong::render() {
 
-	if( !inRetroMode ) {
+	if ( !inRetroMode ) {
 		renderNormal();
 	} else {
 		glUseProgram( 0 );
@@ -366,7 +360,7 @@ void GravityPong::renderNormal() {
 	spriteRenderer->drawSprite( ResourceManager::getTexture( "background" ), glm::vec2( 0, 0 ), glm::vec2( width, height ), 0.0f );
 
 	// render launch arrow
-	if( ball->isLaunching && ball->launchDT < 1.0f ) {
+	if ( ball->isLaunching && ball->launchDT < 1.0f ) {
 		glm::mat4 model;
 		glm::vec2 size = glm::vec2( ball->size.x / 1.5f, ball->size.y / 2.0f );
 		// translate (transformation order: scale, rotate, translate but in reversed order)
@@ -381,46 +375,48 @@ void GravityPong::renderNormal() {
 	}
 
 	// render gravity balls
-	if( p1ChargingGravBall != nullptr ) {
+	if ( p1ChargingGravBall != nullptr ) {
 		p1ChargingGravBall->draw( *spriteRenderer );
 	}
-	if( p2ChargingGravBall != nullptr ) {
+	if ( p2ChargingGravBall != nullptr ) {
 		p2ChargingGravBall->draw( *spriteRenderer );
 	}
-	for( GravityBall& gravBall : gravityBalls ) {
+	for ( GravityBall& gravBall : gravityBalls ) {
 		gravBall.draw( *spriteRenderer );
-		if( gravBall.selectedBy == P1_SELECTED ) {
+		if ( gravBall.selectedBy == P1_SELECTED ) {
 			textRenderer->renderText( "P1", gravBall.pos.x, gravBall.pos.y, 1.0f, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-		} else if( gravBall.selectedBy == P2_SELECTED ) {
+		} else if ( gravBall.selectedBy == P2_SELECTED ) {
 			textRenderer->renderText( "P2", gravBall.pos.x, gravBall.pos.y, 1.0f, glm::vec3( 0.5f, 0.85f, 0.85f ) );
 		}
 	}
 
-	particlesRenderer->draw();
-	if( p1Missile != nullptr ) {
+	particlesRenderer->draw( *spriteRenderer );
+	if ( p1Missile != nullptr ) {
 		p1Missile->draw( *spriteRenderer );
 	}
-	if( p2Missile != nullptr ) {
+	if ( p2Missile != nullptr ) {
 		p2Missile->draw( *spriteRenderer );
 	}
 
-	if( p1Grapple != nullptr ) {
+	if ( p1Grapple != nullptr ) {
 		p1Grapple->draw( *spriteRenderer );
 	}
-	if( p2Grapple != nullptr ) {
+	if ( p2Grapple != nullptr ) {
 		p2Grapple->draw( *spriteRenderer );
 	}
+
 
 	ball->draw( *spriteRenderer );
 	player1->draw( *spriteRenderer );
 	player2->draw( *spriteRenderer );
 
-	for( LeechAttack& leech : leechAttacks ) {
+	for ( LeechAttack& leech : leechAttacks ) {
 		leech.draw( *spriteRenderer );
 	}
 
+
 	// draw explosions on top
-	for( Explosion& explosion : explosions ) {
+	for ( Explosion& explosion : explosions ) {
 		explosion.draw( *spriteRenderer );
 	}
 
@@ -435,44 +431,44 @@ void GravityPong::renderNormal() {
 void GravityPong::renderRetro() {
 
 	// render gravity balls
-	if( p1ChargingGravBall != nullptr ) {
+	if ( p1ChargingGravBall != nullptr ) {
 		retroRenderer.renderGravityBall( *p1ChargingGravBall );
 	}
-	if( p2ChargingGravBall != nullptr ) {
+	if ( p2ChargingGravBall != nullptr ) {
 		retroRenderer.renderGravityBall( *p2ChargingGravBall );
 	}
-	for( GravityBall& gravBall : gravityBalls ) {
+	for ( GravityBall& gravBall : gravityBalls ) {
 		retroRenderer.renderGravityBall( gravBall );
-		if( gravBall.selectedBy == P1_SELECTED ) {
+		if ( gravBall.selectedBy == P1_SELECTED ) {
 			retroRenderer.renderPlayerSymbol( P1_SELECTED, gravBall.pos - gravBall.radius * 0.75f );
-		} else if( gravBall.selectedBy == P2_SELECTED ) {
+		} else if ( gravBall.selectedBy == P2_SELECTED ) {
 			retroRenderer.renderPlayerSymbol( P2_SELECTED, gravBall.pos - gravBall.radius * 0.75f );
 		}
 	}
 
 	// render missiles
-	if( p1Missile != nullptr ) {
+	if ( p1Missile != nullptr ) {
 		retroRenderer.renderMissile( *p1Missile );
 	}
-	if( p2Missile != nullptr ) {
+	if ( p2Missile != nullptr ) {
 		retroRenderer.renderMissile( *p2Missile );
 	}
 	// render particles
 	std::vector<Particle> particles = particlesRenderer->getParticles();
 	GLfloat radius = particlesRenderer->particleSize / 2.0f;
-	for( Particle& particle : particles ) {
-		if( particle.color.a > 0.5f && particle.life >= 0.0f ) {
+	for ( Particle& particle : particles ) {
+		if ( particle.color.a > 0.5f && particle.life >= 0.0f ) {
 			retroRenderer.renderCircle( particle.pos + radius, radius, 8 );
 		}
 	}
 
 	// render explosions
-	for( Explosion& explosion : explosions ) {
+	for ( Explosion& explosion : explosions ) {
 		retroRenderer.renderCircle( explosion.getCenter(), explosion.radius, 20 );
 	}
 
 	// render leech attacks
-	for( LeechAttack& leech : leechAttacks ) {
+	for ( LeechAttack& leech : leechAttacks ) {
 		retroRenderer.renderLeech( leech );
 	}
 
@@ -496,79 +492,77 @@ void GravityPong::handleCollisions() {
 	// check for ball coliding with players
 	Collision playerCollision = checkBallRectCollision( *ball, *player1 );
 	PaddleObject* player = nullptr;
-	if( std::get<0>( playerCollision ) ) {
+	if ( std::get<0>( playerCollision ) ) {
 		player = player1;
 
 		// give player energy on bounce
-		if( p1BounceCooldown <= 0.0f ) {
+		if ( p1BounceCooldown <= 0.0f ) {
 			addEnergy( P1_SELECTED, ENERGY_PER_BOUNCE );
 			p1BounceCooldown = BOUNCE_COOLDOWN_TIME;
 		}
 
 	} else {
 		playerCollision = checkBallRectCollision( *ball, *player2 );
-		if( std::get<0>( playerCollision ) ) {
+		if ( std::get<0>( playerCollision ) ) {
 			player = player2;
 
 			// give player energy on bounce
-			if( p2BounceCooldown <= 0.0f ) {
+			if ( p2BounceCooldown <= 0.0f ) {
 				addEnergy( P2_SELECTED, ENERGY_PER_BOUNCE );
 				p2BounceCooldown = BOUNCE_COOLDOWN_TIME;
 			}
 		}
 	}
 	// handle collision with player if there was one
-	if( player != nullptr ) {
+	if ( player != nullptr ) {
 		int num = player == player1 ? 1 : 2;
 		resolveBallPlayerCollision( *ball, *player, num );
 	}
 
 	// handle missile collisions
-	if( p1Missile != nullptr ) {
+	if ( p1Missile != nullptr ) {
 		GLboolean wasCollision = false;
 		Collision collision = checkBallRectCollision( *ball, *p1Missile );
-		if( std::get<0>( collision ) ) {
+		if ( std::get<0>( collision ) ) {
 			wasCollision = true;
-		} else if( checkRectRectCollision( *player1, *p1Missile ) || checkRectRectCollision( *player2, *p1Missile ) || checkWallsRectCollision( *p1Missile ) ) {
+		} else if ( checkRectRectCollision( *player1, *p1Missile ) || checkRectRectCollision( *player2, *p1Missile ) || checkWallsRectCollision( *p1Missile ) ) {
 			wasCollision = true;
 		}
-		if( wasCollision ) {
+		if ( wasCollision ) {
 			causeMissileExplosion( *p1Missile );
 			deleteMissile( p1Missile );
 		}
 	}
-	if( p2Missile != nullptr ) {
+	if ( p2Missile != nullptr ) {
 		GLboolean wasCollision = false;
 		Collision collision = checkBallRectCollision( *ball, *p2Missile );
-		if( std::get<0>( collision ) ) {
+		if ( std::get<0>( collision ) ) {
 			wasCollision = true;
-		} else if( checkRectRectCollision( *player1, *p2Missile ) || checkRectRectCollision( *player2, *p2Missile ) || checkWallsRectCollision( *p2Missile ) ) {
+		} else if ( checkRectRectCollision( *player1, *p2Missile ) || checkRectRectCollision( *player2, *p2Missile ) || checkWallsRectCollision( *p2Missile ) ) {
 			wasCollision = true;
 		}
-		if( wasCollision ) {
+		if ( wasCollision ) {
 			causeMissileExplosion( *p2Missile );
 			deleteMissile( p2Missile );
 		}
 	}
 	// see if missiles collided
-	if( p1Missile != nullptr && p2Missile != nullptr && checkRectRectCollision( *p1Missile, *p2Missile ) ) {
+	if ( p1Missile != nullptr && p2Missile != nullptr && checkRectRectCollision( *p1Missile, *p2Missile ) ) {
 		// blow up first missile, explosion will cause 2nd missile to blow up
 		causeMissileExplosion( *p1Missile );
 		deleteMissile( p1Missile );
 	}
 
 	// check for leech collisions
-	for( LeechAttack& leech : leechAttacks ) {
-		if( leech.target == player2 ) {
+	for ( LeechAttack& leech : leechAttacks ) {
+		if ( leech.target == player2 ) {
 			// player 1 launched the attack
-			if( !leech.isAttached && !leech.isReturning ) {
-				Collision collision = checkBallRectCollision( leech, *player2 );
-				if( std::get<0>( collision ) ) {
+			if ( !leech.isAttached && !leech.isReturning ) {
+				if ( checkRectRectCollision( leech, *player2 ) ) {
 					leech.attachLeech();
 				}
-			} else if( leech.isReturning ) {
-				Collision collision = checkBallRectCollision( leech, *player1 );
-				if( std::get<0>( collision ) ) {
+			} else if ( leech.isReturning ) {
+				if ( checkRectRectCollision( leech, *player1 ) ) {
 					leech.isAlive = GL_FALSE;
 					addEnergy( P1_SELECTED, leech.amountLeeched );
 				}
@@ -576,13 +570,11 @@ void GravityPong::handleCollisions() {
 		} else if ( leech.target == player1 ) {
 			// player 2 launched the attack
 			if ( !leech.isAttached && !leech.isReturning ) {
-				Collision collision = checkBallRectCollision( leech, *player1 );
-				if( std::get<0>( collision ) ) {
-					leech.attachLeech( );
+				if ( checkRectRectCollision( leech, *player1 ) ) {
+					leech.attachLeech();
 				}
 			} else if ( leech.isReturning ) {
-				Collision collision = checkBallRectCollision( leech, *player2 );
-				if( std::get<0>( collision ) ) {
+				if ( checkRectRectCollision( leech, *player2 ) ) {
 					leech.isAlive = GL_FALSE;
 					addEnergy( P2_SELECTED, leech.amountLeeched );
 				}
@@ -591,27 +583,27 @@ void GravityPong::handleCollisions() {
 	}
 
 	// delete dead leaches and ones that are out of bounds
-	leechAttacks.erase( std::remove_if( leechAttacks.begin(), leechAttacks.end(), [&]( const LeechAttack& leech ) {
+	leechAttacks.erase( std::remove_if( leechAttacks.begin(), leechAttacks.end(), [&] ( const LeechAttack& leech ) {
 		return ( ( leech.pos.x < -leech.size.x ) || ( leech.pos.x > width ) || !leech.isAlive );
 	} ), leechAttacks.end() );
 
 	// check for grapple collision with target
-	if( p1Grapple != nullptr && p1Grapple->isAlive ) {
+	if ( p1Grapple != nullptr && p1Grapple->isAlive ) {
 		Collision collision = checkBallRectCollision( p1Grapple->anchors.front(), *p1Grapple->target );
-		if( std::get<0>( collision ) ) {
+		if ( std::get<0>( collision ) ) {
 			p1Grapple->attachToTarget();
 		}
-	} else if( p1Grapple != nullptr ) {
+	} else if ( p1Grapple != nullptr ) {
 		// delete grapple
 		delete p1Grapple;
 		p1Grapple = nullptr;
 	}
-	if( p2Grapple != nullptr && p2Grapple->isAlive ) {
+	if ( p2Grapple != nullptr && p2Grapple->isAlive ) {
 		Collision collision = checkBallRectCollision( p2Grapple->anchors.front(), *p2Grapple->target );
-		if( std::get<0>( collision ) ) {
+		if ( std::get<0>( collision ) ) {
 			p2Grapple->attachToTarget();
 		}
-	} else if( p2Grapple != nullptr ) {
+	} else if ( p2Grapple != nullptr ) {
 		// delete grapple
 		delete p2Grapple;
 		p2Grapple = nullptr;
@@ -619,12 +611,12 @@ void GravityPong::handleCollisions() {
 
 
 	// handle gravity ball player collisions
-	for( GravityBall& gravBall : gravityBalls ) {
+	for ( GravityBall& gravBall : gravityBalls ) {
 
 		// only detect collision if not collapsing
-		if( !gravBall.isCollapsing ) {
+		if ( !gravBall.isCollapsing ) {
 			playerCollision = checkBallRectCollision( gravBall, *player1 );
-			if( std::get<0>( playerCollision ) ) {
+			if ( std::get<0>( playerCollision ) ) {
 				resolveBallPlayerCollision( gravBall, *player1, 1 );
 
 				// set grav ball to selected
@@ -632,14 +624,14 @@ void GravityPong::handleCollisions() {
 				gravBall.selectedBy = P1_SELECTED;
 
 				// give player energy on bounce
-				if( p1BounceCooldown <= 0.0f ) {
+				if ( p1BounceCooldown <= 0.0f ) {
 					addEnergy( P1_SELECTED, ENERGY_PER_BOUNCE * ( gravBall.radius / gravBall.MAX_RADIUS ) );
 					p1BounceCooldown = BOUNCE_COOLDOWN_TIME;
 				}
 
 			} else {
 				playerCollision = checkBallRectCollision( gravBall, *player2 );
-				if( std::get<0>( playerCollision ) ) {
+				if ( std::get<0>( playerCollision ) ) {
 					resolveBallPlayerCollision( gravBall, *player2, 2 );
 
 					// set grav ball to selected
@@ -647,7 +639,7 @@ void GravityPong::handleCollisions() {
 					gravBall.selectedBy = P2_SELECTED;
 
 					// give player energy on bounce
-					if( p2BounceCooldown <= 0.0f ) {
+					if ( p2BounceCooldown <= 0.0f ) {
 						addEnergy( P2_SELECTED, ENERGY_PER_BOUNCE * ( gravBall.radius / gravBall.MAX_RADIUS ) );
 						p2BounceCooldown = BOUNCE_COOLDOWN_TIME;
 					}
@@ -659,7 +651,7 @@ void GravityPong::handleCollisions() {
 }
 
 GLboolean GravityPong::checkRectRectCollision( const GameObject& one, const GameObject& two ) const {
-	if( (GLint)one.rotation % 360 == 0 && (GLint)two.rotation % 360 == 0 ) {
+	if ( (GLint)one.rotation % 360 == 0 && (GLint)two.rotation % 360 == 0 ) {
 		// hancle case where rectangle is not rotated
 		// collision with x axis
 		bool collisionX = ( one.pos.x + one.size.x >= two.pos.x ) && ( two.pos.x + two.size.x >= one.pos.x );
@@ -686,29 +678,29 @@ GLboolean GravityPong::checkRectRectCollision( const GameObject& one, const Game
 		// loop through each axis and project rectangle vertices onto it
 		GLfloat min1, max1, min2, max2;
 		GLfloat dotProduct;
-		for( int i = 0; i < 4; ++i ) {
+		for ( int i = 0; i < 4; ++i ) {
 			// calculate projections for first rectangle
 			min1 = max1 = glm::dot( rect1[0], axes[i] );
 			min2 = max2 = glm::dot( rect2[0], axes[i] );
-			for( int v = 1; v < 4; ++v ) {
+			for ( int v = 1; v < 4; ++v ) {
 				dotProduct = glm::dot( rect1[v], axes[i] );
-				if( dotProduct < min1 ) {
+				if ( dotProduct < min1 ) {
 					min1 = dotProduct;
 				}
-				if( dotProduct > max1 ) {
+				if ( dotProduct > max1 ) {
 					max1 = dotProduct;
 				}
 				dotProduct = glm::dot( rect2[v], axes[i] );
-				if( dotProduct < min2 ) {
+				if ( dotProduct < min2 ) {
 					min2 = dotProduct;
 				}
-				if( dotProduct > max2 ) {
+				if ( dotProduct > max2 ) {
 					max2 = dotProduct;
 				}
 			}
 
 			// test to see if they are not overlapping
-			if( !( min2 <= max1 && max2 >= min1 ) ) {
+			if ( !( min2 <= max1 && max2 >= min1 ) ) {
 				return false;
 			}
 		}
@@ -722,7 +714,7 @@ GLboolean GravityPong::checkBallBallCollision( const BallObject& one, const Ball
 
 Collision GravityPong::checkBallRectCollision( const BallObject& one, const GameObject& two ) const {
 	glm::vec2 circlePos = one.pos;
-	if( two.rotation != 0.0f ) {
+	if ( two.rotation != 0.0f ) {
 		GLfloat angle = -two.rotation * ( PI / 180.0f );
 		GLfloat unrotatedCircleX = std::cos( angle ) * ( one.getCenter().x - two.getCenter().x ) - std::sin( angle ) * ( one.getCenter().y - two.getCenter().y ) + two.getCenter().x;
 		GLfloat unrotatedCircleY = std::sin( angle ) * ( one.getCenter().x - two.getCenter().x ) + std::cos( angle ) * ( one.getCenter().y - two.getCenter().y ) + two.getCenter().y;
@@ -743,7 +735,7 @@ Collision GravityPong::checkBallRectCollision( const BallObject& one, const Game
 	glm::vec2 closest = centerRect + clamped;
 	direction = closest - centerBall;
 
-	if( glm::length( direction ) <= one.radius ) {
+	if ( glm::length( direction ) <= one.radius ) {
 		return std::make_tuple( GL_TRUE, vectorDirection( direction ), direction );
 	} else {
 		return std::make_tuple( GL_FALSE, UP, glm::vec2( 0, 0 ) );
@@ -754,8 +746,8 @@ GLboolean GravityPong::checkWallsRectCollision( const GameObject& object ) const
 	glm::vec2 vertices[4];
 	object.getVertices( vertices );
 	// check for wall collisions
-	for( int i = 0; i < 4; ++i ) {
-		if( vertices[i].x <= 0.0f || vertices[i].x >= width || vertices[i].y <= heightRange.x || vertices[i].y >= heightRange.y ) {
+	for ( int i = 0; i < 4; ++i ) {
+		if ( vertices[i].x <= 0.0f || vertices[i].x >= width || vertices[i].y <= heightRange.x || vertices[i].y >= heightRange.y ) {
 			return true;
 		}
 	}
@@ -772,9 +764,9 @@ Direction GravityPong::vectorDirection( const glm::vec2 target ) const {
 
 	GLfloat max = 0.0f;
 	Direction bestMatch = UP;
-	for( GLuint i = 0; i < 4; ++i ) {
+	for ( GLuint i = 0; i < 4; ++i ) {
 		GLfloat dotProduct = glm::dot( glm::normalize( target ), compass[i] );
-		if( dotProduct > max ) {
+		if ( dotProduct > max ) {
 			max = dotProduct;
 			bestMatch = (Direction)i;
 		}
@@ -798,22 +790,22 @@ void GravityPong::resetGame() {
 	p2Lives = NUM_LIVES;
 
 	// clear gravity balls
-	if( p1ChargingGravBall != nullptr ) {
+	if ( p1ChargingGravBall != nullptr ) {
 		delete p1ChargingGravBall;
 		p1ChargingGravBall = nullptr;
 	}
-	if( p2ChargingGravBall != nullptr ) {
+	if ( p2ChargingGravBall != nullptr ) {
 		delete p2ChargingGravBall;
 		p2ChargingGravBall = nullptr;
 	}
 	gravityBalls.clear();
 
 	// clear missile
-	if( p1Missile != nullptr ) {
+	if ( p1Missile != nullptr ) {
 		delete p1Missile;
 		p1Missile = nullptr;
 	}
-	if( p2Missile != nullptr ) {
+	if ( p2Missile != nullptr ) {
 		delete p2Missile;
 		p2Missile = nullptr;
 	}
@@ -846,16 +838,16 @@ void GravityPong::resolveBallPlayerCollision( BallObject& ball, const PaddleObje
 	// move accordingly
 	ball.vel.x = oldSpeed * std::cos( angle );
 	ball.vel.y = oldSpeed * std::sin( angle );
-	if( num == 2 ) {
+	if ( num == 2 ) {
 		ball.vel.x = -ball.vel.x;
 	}
 }
 
 void GravityPong::updateGravityBalls( const GLfloat dt ) {
 	// update gravity balls
-	if( p1ChargingGravBall != nullptr ) {
+	if ( p1ChargingGravBall != nullptr ) {
 		p1ChargingGravBall->update( dt, heightRange );
-		if( !keys[GLFW_KEY_D] ) {
+		if ( !keys[GLFW_KEY_D] ) {
 			unselectGravBall( P1_SELECTED );
 
 			// launch the gravity ball
@@ -867,9 +859,9 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 			p1ChargingGravBall = nullptr;
 		}
 	}
-	if( p2ChargingGravBall != nullptr ) {
+	if ( p2ChargingGravBall != nullptr ) {
 		p2ChargingGravBall->update( dt, heightRange );
-		if( !keys[GLFW_KEY_LEFT] ) {
+		if ( !keys[GLFW_KEY_LEFT] ) {
 			unselectGravBall( P2_SELECTED );
 
 			// launch the gravity ball
@@ -881,19 +873,19 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 			p2ChargingGravBall = nullptr;
 		}
 	}
-	for( GravityBall& gravBall : gravityBalls ) {
+	for ( GravityBall& gravBall : gravityBalls ) {
 		gravBall.update( dt, heightRange );
 		gravBall.pullObject( dt, *ball );
 	}
 	// pull missiles
-	if( p1Missile != nullptr ) {
-		for( GravityBall& gravBall : gravityBalls ) {
+	if ( p1Missile != nullptr ) {
+		for ( GravityBall& gravBall : gravityBalls ) {
 			gravBall.pullObject( dt, *p1Missile );
 		}
 	}
 
 	// remove gravity balls that are out of bounds
-	gravityBalls.erase( std::remove_if( gravityBalls.begin(), gravityBalls.end(), [&]( const GravityBall& gravBall ) {
+	gravityBalls.erase( std::remove_if( gravityBalls.begin(), gravityBalls.end(), [&] ( const GravityBall& gravBall ) {
 		return ( ( gravBall.pos.x < -gravBall.size.x ) || ( gravBall.pos.x > width ) || gravBall.radius <= 0.0f );
 	} ), gravityBalls.end() );
 }
@@ -916,7 +908,7 @@ void GravityPong::renderGUI() const {
 	// draw player energy text
 	std::stringstream ss;
 	ss << (GLuint)p1Energy;
-	textRenderer->renderText( ss.str(), pos.x + width * 0.01f, pos.y + size.y * 0.2f, (size.y * 0.6f) / 16.0f, glm::vec3( 0.0f ) );
+	textRenderer->renderText( ss.str(), pos.x + width * 0.01f, pos.y + size.y * 0.2f, ( size.y * 0.6f ) / 16.0f, glm::vec3( 0.0f ) );
 	ss.str( std::string() );
 	ss << (GLuint)p2Energy;
 	textRenderer->renderText( ss.str(), pos2.x + size2.x - width * 0.01f, pos.y + size.y * 0.2f, ( size.y * 0.6f ) / 16.0f, glm::vec3( 0.0f ), RIGHT_ALIGNED );
@@ -930,11 +922,11 @@ void GravityPong::renderGUI() const {
 	glm::vec2 p1Start = glm::vec2( 0.1f * 0.15f * width, 0.245f * 0.1f * heightRange.x );
 	glm::vec2 lifeSize = glm::vec2( ( 0.245f * 0.8 * heightRange.x ) / 2.0f, 0.245f * 0.8 * heightRange.x );
 	GLfloat xLifeOffset = ( ( 0.8f * 0.15f * width ) - ( lifeSize.x * NUM_LIVES ) ) / ( NUM_LIVES - 1 );
-	for( int i = 0; i < p1Lives; ++i, p1Start.x += ( lifeSize.x + xLifeOffset ) ) {
+	for ( int i = 0; i < p1Lives; ++i, p1Start.x += ( lifeSize.x + xLifeOffset ) ) {
 		spriteRenderer->drawSprite( ResourceManager::getTexture( "life" ), p1Start, lifeSize, 0.0f );
 	}
 	glm::vec2 p2Start = glm::vec2( width - ( 0.1f * 0.15f * width ) - lifeSize.x, p1Start.y );
-	for( int i = 0; i < p2Lives; ++i, p2Start.x -= ( lifeSize.x + xLifeOffset ) ) {
+	for ( int i = 0; i < p2Lives; ++i, p2Start.x -= ( lifeSize.x + xLifeOffset ) ) {
 		spriteRenderer->drawSprite( ResourceManager::getTexture( "life" ), p2Start, lifeSize, 0.0f );
 	}
 
@@ -951,12 +943,12 @@ void GravityPong::renderGUI() const {
 	// get punishment icon
 	Texture image;
 	PUNISHMENT_TYPE type;
-	if( nextPunishmentCountdown > 0.0f ) {
+	if ( nextPunishmentCountdown > 0.0f ) {
 		type = nextPunishmentType;
 	} else {
 		type = punishment.type;
 	}
-	switch( type ) {
+	switch ( type ) {
 	case SLOW:
 		image = ResourceManager::getTexture( "slow_punishment" );
 		break;
@@ -972,12 +964,15 @@ void GravityPong::renderGUI() const {
 	case ABUSE:
 		image = ResourceManager::getTexture( "abuse_punishment" );
 		break;
+	case BLIND:
+		image = ResourceManager::getTexture( "abuse_punishment" );
+		break;
 	}
 
 	// draw punishment countdown
-	if( nextPunishmentCountdown > 0.0f ) {
+	if ( nextPunishmentCountdown > 0.0f ) {
 
-		if ( state != GAME_OVER ) {
+		if ( state != GAME_OVER && state != GAME_PAUSED ) {
 			// draw punishment countdown
 			ss.str( std::string() );
 			ss << (GLint)nextPunishmentCountdown;
@@ -986,11 +981,11 @@ void GravityPong::renderGUI() const {
 
 		// draw punishment icon and text
 		GLfloat p1EnergyRatio = p1Energy / ( p1Energy + p2Energy );
-		if( p1EnergyRatio <= 0.25f ) {
+		if ( p1EnergyRatio <= 0.25f ) {
 			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
 			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-		} else if( p1EnergyRatio >= 0.75f ) {
+		} else if ( p1EnergyRatio >= 0.75f ) {
 			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
 			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
 			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
@@ -1005,7 +1000,7 @@ void GravityPong::renderGUI() const {
 		GLfloat scale = ( sizeY / pBoxSize.y );
 		glm::vec2 punishmentSize = pBoxSize * scale;
 		glm::vec2 punishmentPos;
-		 
+
 		ss.str( std::string() );
 		if ( punishment.charges > 0 ) {
 			ss << "C:" << punishment.charges;
@@ -1017,13 +1012,13 @@ void GravityPong::renderGUI() const {
 		spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
 
 		// draw active punishment
-		if( punishment.player == P1_SELECTED ) {
+		if ( punishment.player == P1_SELECTED ) {
 			punishmentPos = glm::vec2( 0.02f * 0.15f * width, ( 0.245f * heightRange.x ) * 1.1f );
 			// draw current punishment and its duration
 			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-			textRenderer->renderText( ss.str(), leftPos.x + pBoxSize.x / 2.0f, leftPos.y + pBoxSize.y * 0.35f, (pBoxSize.y * 0.3f) / 16.0f, glm::vec3( 1.0f ), CENTERED );
+			textRenderer->renderText( ss.str(), leftPos.x + pBoxSize.x / 2.0f, leftPos.y + pBoxSize.y * 0.35f, ( pBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
 		} else {
-			punishmentPos = glm::vec2( width - (0.02f * 0.15f * width) - punishmentSize.x, ( 0.245f * heightRange.x ) * 1.1f );
+			punishmentPos = glm::vec2( width - ( 0.02f * 0.15f * width ) - punishmentSize.x, ( 0.245f * heightRange.x ) * 1.1f );
 			// draw current punishment and its duration
 			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
 			textRenderer->renderText( ss.str(), rightPos.x + pBoxSize.x / 2.0f, leftPos.y + pBoxSize.y * 0.35f, ( pBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
@@ -1031,8 +1026,11 @@ void GravityPong::renderGUI() const {
 		spriteRenderer->drawSprite( image, punishmentPos, punishmentSize, 0.0f, glm::vec4( 1.0f ), punishment.player == P1_SELECTED );
 	}
 
-	if( state == GAME_OVER ) {
+	if ( state == GAME_OVER ) {
 		textRenderer->renderText( "Press ENTER to start or ESC to quit", 0.5f * width,
+			heightRange.x * ( 1.0f / 3.0f ) + heightRange.x * ( 2.0f / 3.0f ) * 0.43f, ( heightRange.x * ( 2.0f / 3.0f ) * 0.14f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
+	} else if ( state == GAME_PAUSED ) {
+		textRenderer->renderText( "Game Paused : P to Unpause", 0.5f * width,
 			heightRange.x * ( 1.0f / 3.0f ) + heightRange.x * ( 2.0f / 3.0f ) * 0.43f, ( heightRange.x * ( 2.0f / 3.0f ) * 0.14f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
 	}
 
@@ -1055,14 +1053,14 @@ void GravityPong::renderGUIRetro() const {
 	// draw player lives in tally markers
 	GLfloat startX = pos.x * 0.25f, endX = pos.x * 0.75;
 	GLfloat distBetween = ( endX - startX ) / NUM_LIVES;
-	for( int i = 0; i < p1Lives; ++i, startX += distBetween ) {
+	for ( int i = 0; i < p1Lives; ++i, startX += distBetween ) {
 		retroRenderer.renderLine( glm::vec2( startX, pos.y ), glm::vec2( startX, pos.y + size.y ) );
 	}
 
 	startX = width - ( pos.x * 0.75f );
 	endX = width - ( pos.x * 0.25f );
 	distBetween = ( endX - startX ) / NUM_LIVES;
-	for( int i = p2Lives; i > 0; --i, endX -= distBetween ) {
+	for ( int i = p2Lives; i > 0; --i, endX -= distBetween ) {
 		retroRenderer.renderLine( glm::vec2( endX, pos.y ), glm::vec2( endX, pos.y + size.y ) );
 	}
 
@@ -1072,40 +1070,40 @@ void GravityPong::renderGUIRetro() const {
 	size = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ), 0.5f * heightRange.x );
 	retroRenderer.renderRect( pos, pos + size );
 
-	if( nextPunishmentCountdown > 0.0f ) {
+	if ( nextPunishmentCountdown > 0.0f ) {
 		pos = glm::vec2( pos.x + size.x * 0.05f, pos.y + size.y * 0.3f );
 		// draw punishment countdown
 		retroRenderer.renderRect( glm::vec2( pos ), glm::vec2( pos.x + size.x * 0.9f * ( nextPunishmentCountdown / PUNISHMENT_COUNTDOWN ), pos.y + size.y * 0.6f ) );
 	} else {
-		if( punishment.charges > 0 ) {
+		if ( punishment.charges > 0 ) {
 			// draw tallies
 		} else {
 		}
 	}
 
-	if( state == GAME_OVER ) {
+	if ( state == GAME_OVER ) {
 		retroRenderer.renderEnter( glm::vec2( width / 2.0f, ( heightRange.y + heightRange.x ) / 3.0f ), glm::vec2( width / 5.0f, ( heightRange.y + heightRange.x ) / 10.0f ) );
 	}
 }
 
 void GravityPong::unselectGravBall( const PLAYER_SELECTED player ) {
-	if( player == NO_ONE ) {
+	if ( player == NO_ONE ) {
 		return;
 	}
 
 	GravityBall* gravBallPtr = findSelectedGravBall( player );
-	if( gravBallPtr != nullptr ) {
+	if ( gravBallPtr != nullptr ) {
 		gravBallPtr->selectedBy = NO_ONE;
 	}
 }
 
 GravityBall* GravityPong::findSelectedGravBall( const PLAYER_SELECTED player ) {
-	if( player == NO_ONE ) {
+	if ( player == NO_ONE ) {
 		return nullptr;
 	}
 
-	for( GravityBall& gravBall : gravityBalls ) {
-		if( gravBall.selectedBy == player ) {
+	for ( GravityBall& gravBall : gravityBalls ) {
+		if ( gravBall.selectedBy == player ) {
 			return &gravBall;
 		}
 	}
@@ -1113,29 +1111,29 @@ GravityBall* GravityPong::findSelectedGravBall( const PLAYER_SELECTED player ) {
 
 void GravityPong::handleCooldowns( const GLfloat dt ) {
 	// reduce cooldowns
-	if( p1BounceCooldown > 0.0f ) {
+	if ( p1BounceCooldown > 0.0f ) {
 		p1BounceCooldown -= dt;
 	}
-	if( p2BounceCooldown > 0.0f ) {
+	if ( p2BounceCooldown > 0.0f ) {
 		p2BounceCooldown -= dt;
 	}
-	if( p1MissileCooldown > 0.0f ) {
+	if ( p1MissileCooldown > 0.0f ) {
 		p1MissileCooldown -= dt;
 	}
-	if( p2MissileCooldown > 0.0f ) {
+	if ( p2MissileCooldown > 0.0f ) {
 		p2MissileCooldown -= dt;
 	}
-	if( nextPunishmentCountdown > 0.0f && punishment.player == NO_ONE ) {
+	if ( nextPunishmentCountdown > 0.0f && punishment.player == NO_ONE ) {
 		nextPunishmentCountdown -= dt;
 		// apply punishment if cooldown reaches 0
-		if( nextPunishmentCountdown <= 0.0f ) {
+		if ( nextPunishmentCountdown <= 0.0f ) {
 			dealPunishment();
 		}
-	} else if( punishment.player != NO_ONE && punishment.timeLeft > 0.0f || punishment.charges > 0 ) {
-		if( punishment.timeLeft > 0.0f ) {
+	} else if ( punishment.player != NO_ONE && punishment.timeLeft > 0.0f || punishment.charges > 0 ) {
+		if ( punishment.timeLeft > 0.0f ) {
 			punishment.timeLeft -= dt;
 
-			if( punishment.type == TRAIL && punishment.charges >= (int)punishment.timeLeft + 1 ) {
+			if ( punishment.type == TRAIL && punishment.charges >= (int)punishment.timeLeft + 1 ) {
 				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 100.0f );
 				gravBall.isCollapsing = GL_TRUE;
 				gravBall.color = glm::vec4( 1.0f );
@@ -1144,19 +1142,19 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 			}
 
 			// undo punishment
-			if( punishment.timeLeft <= 0.0f ) {
+			if ( punishment.timeLeft <= 0.0f ) {
 				clearPunishment();
 			}
 		} else {
 
-			if( !ball->isLaunching ) {
+			if ( !ball->isLaunching ) {
 				--punishment.charges;
 				ball->startLaunch( punishment.player );
 			}
 
 
-			if( punishment.charges == 0 ) {
-				switch( punishment.type ) {
+			if ( punishment.charges == 0 ) {
+				switch ( punishment.type ) {
 				case ABUSE:
 					punishment.timeLeft = PRE_LAUNCH_TIME;
 					break;
@@ -1171,15 +1169,15 @@ void GravityPong::dealPunishment() {
 	PLAYER_SELECTED selectedPlayer = NO_ONE;
 	PaddleObject* paddle = nullptr;
 	GLfloat p1EnergyPercent = p1Energy / ( p1Energy + p2Energy );
-	if( p1EnergyPercent <= 0.25f ) {
+	if ( p1EnergyPercent <= 0.25f ) {
 		selectedPlayer = P1_SELECTED;
 		paddle = player1;
-	} else if( p1EnergyPercent >= 0.75f ) {
+	} else if ( p1EnergyPercent >= 0.75f ) {
 		selectedPlayer = P2_SELECTED;
 		paddle = player2;
 	} else {
 		int randomPlayer = rand() % 100;
-		if( randomPlayer <= 100 * ( 1.0 - p1EnergyPercent) ) {
+		if ( randomPlayer <= 100 * ( 1.0 - p1EnergyPercent ) ) {
 			selectedPlayer = P1_SELECTED;
 			paddle = player1;
 		} else {
@@ -1189,7 +1187,7 @@ void GravityPong::dealPunishment() {
 	}
 
 	punishment = Punishment( selectedPlayer, nextPunishmentType, paddle );
-	switch( nextPunishmentType ) {
+	switch ( nextPunishmentType ) {
 	case SLOW:
 		punishment.paddle->speed = PADDLE_SPEED / 1.5f;
 		break;
@@ -1204,12 +1202,19 @@ void GravityPong::dealPunishment() {
 	case INVERSE:
 		punishment.paddle->speed = -punishment.paddle->speed;
 		break;
+	case BLIND:
+		if ( punishment.paddle == player1 ) {
+			postEffectsRenderer->blindPlayer( *player1, BLIND_RANGE, heightRange );
+		} else {
+			postEffectsRenderer->blindPlayer( *player2, BLIND_RANGE, heightRange );
+		}
+		break;
 	}
 }
 
 void GravityPong::clearPunishment() {
-	if( punishment.player != NO_ONE ) {
-		switch( punishment.type ) {
+	if ( punishment.player != NO_ONE ) {
+		switch ( punishment.type ) {
 		case SLOW:
 			punishment.paddle->speed = PADDLE_SPEED;
 			break;
@@ -1220,20 +1225,23 @@ void GravityPong::clearPunishment() {
 		case INVERSE:
 			punishment.paddle->speed = PADDLE_SPEED;
 			break;
+		case BLIND:
+			postEffectsRenderer->clearEffects();
+			break;
 		}
 
 		punishment = Punishment();
 	}
 	// randomly selected the next punishment
 	nextPunishmentCountdown = PUNISHMENT_COUNTDOWN;
-	int randomPunishment = rand() % NUM_PUNISHMENTS;
+	int randomPunishment = NUM_PUNISHMENTS - 1;//rand() % NUM_PUNISHMENTS;
 	nextPunishmentType = (PUNISHMENT_TYPE)randomPunishment;
 }
 
 void GravityPong::rotateRectangle( glm::vec2 rect[4], GLfloat rotation, const glm::vec2 center ) const {
 	GLfloat tmpX, tmpY;
 	rotation *= ( PI / 180.0f );
-	for( int i = 0; i < 4; ++i ) {
+	for ( int i = 0; i < 4; ++i ) {
 		// translate point with respect to origin
 		rect[i] -= center;
 		tmpX = rect[i].x * std::cos( rotation ) - rect[i].y * std::sin( rotation );
@@ -1246,47 +1254,48 @@ void GravityPong::rotateRectangle( glm::vec2 rect[4], GLfloat rotation, const gl
 
 void GravityPong::causeMissileExplosion( const Missile& missile, const GLboolean missileCheck ) {
 	// add explosion to the game
-	explosions.push_back( Explosion( missile.getCenter() - EXPLOSION_RADIUS, EXPLOSION_RADIUS, ResourceManager::getTexture( "explosion" ), EXPLOSION_TIME ) );
+	std::string textureName = &missile == p1Missile ? "tech_explosion" : "alien_explosion";
+	explosions.push_back( Explosion( missile.getCenter() - EXPLOSION_RADIUS, EXPLOSION_RADIUS, ResourceManager::getTexture( textureName ), EXPLOSION_TIME ) );
 
 	// check to see if ball was in the explosion
 	GLfloat ballDist = glm::distance( ball->getCenter(), missile.getCenter() );
-	if( ballDist <= EXPLOSION_RADIUS ) {
+	if ( ballDist <= EXPLOSION_RADIUS ) {
 		// launch the ball
 		glm::vec2 ballDir = glm::normalize( ball->getCenter() - missile.getCenter() );
 		ball->vel += MISSILE_POWER * ( 1.0f - ( ballDist / EXPLOSION_RADIUS ) ) * ballDir;
 	}
 
 	// check to see if gravity balls were hit in the explosion
-	for( GravityBall& gravBall : gravityBalls ) {
-		if( glm::distance( gravBall.getCenter(), missile.getCenter() ) <= gravBall.radius + EXPLOSION_RADIUS ) {
+	for ( GravityBall& gravBall : gravityBalls ) {
+		if ( glm::distance( gravBall.getCenter(), missile.getCenter() ) <= gravBall.radius + EXPLOSION_RADIUS ) {
 			gravBall.radius = 0.0f;
 		}
 	}
 
 	// check to see if paddles were hit in the explosion
 	Collision collision = checkBallRectCollision( explosions.back(), *player1 );
-	if( std::get<0>( collision ) ) {
+	if ( std::get<0>( collision ) ) {
 		player1->stunnedTimer = EXPLOSION_STUN_TIME;
 	} else {
 		collision = checkBallRectCollision( explosions.back(), *player2 );
-		if( std::get<0>( collision ) ) {
+		if ( std::get<0>( collision ) ) {
 			player2->stunnedTimer = EXPLOSION_STUN_TIME;
 		}
 	}
 
-	if( missileCheck ) {
+	if ( missileCheck ) {
 		// check to see if other missile was hit in the explosion
-		if( p1Missile == &missile && p2Missile != nullptr ) {
+		if ( p1Missile == &missile && p2Missile != nullptr ) {
 			// check to see if p2 missile was hit
 			collision = checkBallRectCollision( explosions.back(), *p2Missile );
-			if( std::get<0>( collision ) ) {
+			if ( std::get<0>( collision ) ) {
 				causeMissileExplosion( *p2Missile, GL_FALSE );
 				deleteMissile( p2Missile );
 			}
-		} else if( p2Missile == &missile && p1Missile != nullptr ) {
+		} else if ( p2Missile == &missile && p1Missile != nullptr ) {
 			// check to see if p1 missile was hit
 			collision = checkBallRectCollision( explosions.back(), *p1Missile );
-			if( std::get<0>( collision ) ) {
+			if ( std::get<0>( collision ) ) {
 				causeMissileExplosion( *p1Missile, GL_FALSE );
 				deleteMissile( p1Missile );
 			}
@@ -1295,9 +1304,9 @@ void GravityPong::causeMissileExplosion( const Missile& missile, const GLboolean
 }
 
 void GravityPong::deleteMissile( Missile*& missile ) {
-	if( missile == p1Missile ) {
+	if ( missile == p1Missile ) {
 		p1MissileCooldown = MISSILE_COOLDOWN;
-	} else if( missile == p2Missile ) {
+	} else if ( missile == p2Missile ) {
 		p2MissileCooldown = MISSILE_COOLDOWN;
 	}
 	delete missile;
@@ -1307,26 +1316,26 @@ void GravityPong::deleteMissile( Missile*& missile ) {
 void GravityPong::addEnergy( PLAYER_SELECTED player, GLfloat energy ) {
 
 	const PaddleObject* plr;
-	if( player == P1_SELECTED ) {
+	if ( player == P1_SELECTED ) {
 		plr = player1;
-	} else if( player == P2_SELECTED ) {
+	} else if ( player == P2_SELECTED ) {
 		plr = player2;
 	} else {
 		return;
 	}
 
 	// check to see if leach attached to player 1
-	for( int i = 0; i < leechAttacks.size() && energy > 0; ++i ) {
+	for ( int i = 0; i < leechAttacks.size() && energy > 0; ++i ) {
 		LeechAttack& leech = leechAttacks[i];
-		if( leech.target == plr && leech.isAttached ) {
+		if ( leech.target == plr && leech.isAttached ) {
 			// give energy to leech and any left overs to the player
 			energy = leech.addEnergy( energy );
 		}
 	}
 
-	if( player == P1_SELECTED ) {
+	if ( player == P1_SELECTED ) {
 		p1Energy += energy;
-	} else if( player == P2_SELECTED ) {
+	} else if ( player == P2_SELECTED ) {
 		p2Energy += energy;
 	}
 }

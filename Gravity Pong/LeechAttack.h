@@ -3,23 +3,23 @@
 #ifndef LEECH_ATTACK_H
 #define LEECH_ATTACK_H
 
-#include "BallObject.h"
 #include "GameObject.h"
 
 #include <GL/glew.h>
 
-class LeechAttack : public BallObject {
+class LeechAttack : public GameObject {
 public:
-	GLfloat				amountLeeched, timeLeft, desiredRotation;
+	GLfloat				STRETCH_AMOUNT = 0.2f;
+	GLfloat				amountLeeched, timeLeft, desiredRotation, TURN_RATE;
 	GLuint				MAX_LEECH_AMOUNT;
-	GLfloat				STARTING_RADIUS, MAX_RADIUS, TURN_RATE;
+	glm::vec2			STARTING_SIZE, MAX_SIZE;
 	glm::vec2			LAUNCH_DIRECTION;
 	const GameObject*	target;
 	glm::vec2			offset;
 	GLboolean			isAlive, isAttached, isReturning;
 
 
-						LeechAttack( glm::vec2 pos, GLfloat radius, Texture sprite, glm::vec2 dir, GameObject* target, GLfloat leechAmount = 300.0f, GLfloat duration = 8.0f );
+						LeechAttack( glm::vec2 pos, glm::vec2 size, Texture sprite, glm::vec2 dir, GameObject* target, GLfloat leechAmount = 300.0f, GLfloat duration = 8.0f );
 						~LeechAttack();
 	void				update( const GLfloat dt );
 	void				attachLeech();

@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-PostProcessor::PostProcessor( Shader shader, GLuint width, GLuint height ) 
-	: shader( shader ), texture(), width( width ), height( height ), confuse( GL_FALSE ), chaos( GL_FALSE ), shake( GL_FALSE ) {
+PostProcessor::PostProcessor( Shader shader, GLuint width, GLuint height )
+	: shader( shader ), texture(), width( width ), height( height ), blind( GL_FALSE ), blindedPlayer( nullptr ) {
 	// initialize FBO's
 	glGenFramebuffers( 1, &MSFBO );
 	glGenFramebuffers( 1, &FBO );
@@ -16,7 +16,7 @@ PostProcessor::PostProcessor( Shader shader, GLuint width, GLuint height )
 	glRenderbufferStorageMultisample( GL_RENDERBUFFER, 4, GL_RGB, width, height );
 	// attach MS render muffer object to framebuffer
 	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, RBO );
-	if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
+	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
 		std::cout << "ERROR::POSTPROCESSOR: Failed to initialize MSFBO" << std::endl;
 
 	// initialize the FBO/texture to blit multisampled color-buffer to; used for shader operations (for postprocessing effects)
@@ -24,7 +24,7 @@ PostProcessor::PostProcessor( Shader shader, GLuint width, GLuint height )
 	texture.generate( width, height, NULL );
 	// attach texture to framebuffer as its color attachment
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.ID, 0 );
-	if( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
+	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
 		std::cout << "ERROR::POSTPROCESSOR: Failed to initialize FBO" << std::endl;
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
@@ -32,31 +32,6 @@ PostProcessor::PostProcessor( Shader shader, GLuint width, GLuint height )
 	initRenderData();
 	shader.use();
 	shader.setInteger( "scene", 0 );
-	GLfloat offset = 1.0f / 300.0f;
-	GLfloat offsets[9][2] = {
-			{ -offset, offset },  // top-left
-			{ 0.0f, offset },  // top-center
-			{ offset, offset },  // top-right
-			{ -offset, 0.0f },  // center-left
-			{ 0.0f, 0.0f },  // center-center
-			{ offset, 0.0f },  // center - right
-			{ -offset, -offset },  // bottom-left
-			{ 0.0f, -offset },  // bottom-center
-			{ offset, -offset }   // bottom-right    
-	};
-	glUniform2fv( glGetUniformLocation( shader.ID, "offsets" ), 9, (GLfloat*)offsets );
-	GLint edgeKernel[9] = {
-		-1, -1, -1,
-		-1, 8, -1,
-		-1, -1, -1
-	};
-	glUniform1iv( glGetUniformLocation( this->shader.ID, "edgeKernel" ), 9, edgeKernel );
-	GLfloat blurKernel[9] = {
-		1.0 / 16, 2.0 / 16, 1.0 / 16,
-		2.0 / 16, 4.0 / 16, 2.0 / 16,
-		1.0 / 16, 2.0 / 16, 1.0 / 16
-	};
-	glUniform1fv( glGetUniformLocation( this->shader.ID, "blurKernel" ), 9, blurKernel );
 }
 
 PostProcessor::~PostProcessor() {
@@ -81,10 +56,10 @@ void PostProcessor::endRender() {
 void PostProcessor::render( GLfloat time ) {
 	// Set uniforms/options
 	shader.use();
-	shader.setFloat( "time", time );
-	shader.setInteger( "confuse", confuse );
-	shader.setInteger( "chaos", chaos );
-	shader.setInteger( "shake", shake );
+	shader.setInteger( "blind", blind );
+	if ( blind ) {
+		shader.setVector2f( "playerPos", glm::vec2( blindedPlayer->getCenter().x, height - blindedPlayer->getCenter().y ) );
+	}
 	// render textured quad
 	glActiveTexture( GL_TEXTURE0 );
 	texture.bind();
@@ -117,4 +92,16 @@ void PostProcessor::initRenderData() {
 	glVertexAttribPointer( 0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof( GL_FLOAT ), (GLvoid*)0 );
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindVertexArray( 0 );
+}
+
+void PostProcessor::blindPlayer( const GameObject& player, GLfloat blindRange, glm::vec2 heightRange ) {
+	blind = GL_TRUE;
+	blindedPlayer = &player;
+	shader.setVector2f( "heightRange", heightRange - heightRange.x );
+	shader.setFloat( "visionRadius", blindRange );
+}
+
+void PostProcessor::clearEffects() {
+	blind = GL_FALSE;
+	blindedPlayer = nullptr;
 }

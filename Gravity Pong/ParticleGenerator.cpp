@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-ParticleGenerator::ParticleGenerator( const Shader shader, const Texture texture, const GLuint amount, GLfloat particleSize )
-	: shader(shader), texture(texture), amount(amount), lastUsedParticle(0), particleSize( particleSize ) {
+ParticleGenerator::ParticleGenerator( const Texture texture, const GLuint amount, GLfloat particleSize )
+	: texture(texture), amount(amount), lastUsedParticle(0), particleSize( particleSize ) {
 	init();
 }
 
@@ -11,11 +11,13 @@ ParticleGenerator::~ParticleGenerator() {
 	
 }
 
-void ParticleGenerator::addParticles( GameObject object, GLuint newParticles, glm::vec2 offset, GLfloat rotation ) {
+void ParticleGenerator::addParticles(glm::vec2 pos, GLuint newParticles, glm::vec3 color, GLfloat rotation ) {
 	// add new particles
 	for( GLuint i = 0; i < newParticles; ++i ) {
+		// find an unused particle in the array
 		int unusedParticle = firstUnusedParticle();
-		respawnParticle( particles[unusedParticle], object, offset, rotation );
+		// spawn a new particle at that index
+		respawnParticle( particles[unusedParticle], pos, color, rotation );
 	}
 }
 
@@ -31,23 +33,13 @@ void ParticleGenerator::update( GLfloat dt ) {
 	}
 }
 
-void ParticleGenerator::draw() {
+void ParticleGenerator::draw(SpriteRenderer& renderer) {
 	// use additive blending to make particles glow
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
-	shader.use();
 	for( Particle particle : particles ) {
 		//std::cout << "drawing " << std::endl;
 		if( particle.life > 0.0f ) {
-			shader.setVector2f( "offset", particle.pos );
-			shader.setVector4f( "color", particle.color );
-			shader.setFloat( "scale", particleSize );
-			glm::mat4 model;
-			model = glm::rotate( model, particle.rotation, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-			shader.setMatrix4( "model", model );
-			texture.bind();
-			glBindVertexArray( VAO );
-			glDrawArrays( GL_TRIANGLES, 0, 6 );
-			glBindVertexArray( 0 );
+			renderer.drawSprite(texture, particle.pos, glm::vec2(particleSize), particle.rotation, particle.color );
 		}
 	}
 	// reset blending mode
@@ -102,13 +94,12 @@ GLuint ParticleGenerator::firstUnusedParticle() {
 	return 0;
 }
 
-void ParticleGenerator::respawnParticle( Particle& particle, const GameObject& object, const glm::vec2 offset, const GLfloat rotation ) {
-	GLfloat random = ( ( rand() % 100 ) - 50 ) / 10.0f;
-	GLfloat rColor = 0.5 + ( ( rand() % 100 ) / 100.0f );
-	particle.pos = object.pos + random + offset;
-	particle.color = glm::vec4( rColor, rColor, rColor, 1.0f );
+void ParticleGenerator::respawnParticle( Particle& particle, const glm::vec2 pos, const glm::vec3 color, const GLfloat rotation ) {
+	// randomly pick color between white and gray
+	GLfloat rColor = 0.5 + ( ( rand() % 50 ) / 100.0f );
+	particle.pos = pos + glm::vec2(-5 + rand() % 10, -5 + rand() % 10);
+	particle.color = glm::vec4( rColor, rColor, rColor, 1.0f ) * glm::vec4(color, 1.0f);
 	particle.life = 1.0f;
-	particle.vel = object.vel * 0.1f;
 	particle.rotation = rotation;
 }
 

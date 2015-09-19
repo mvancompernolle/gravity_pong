@@ -131,8 +131,8 @@ void RetroRenderer::renderMissile( const Missile& missile ) const {
 }
 
 void RetroRenderer::renderLeech( const LeechAttack& leech ) const {
-	renderCircle( leech.getCenter(), leech.radius, 12 );
-	renderLine( leech.getCenter(), glm::vec2( leech.getCenter().x + glm::normalize( leech.LAUNCH_DIRECTION.x ) * leech.radius * 1.25f, leech.getCenter().y ) );
+	/*renderCircle( leech.getCenter(), leech.radius, 12 );
+	renderLine( leech.getCenter(), glm::vec2( leech.getCenter().x + glm::normalize( leech.LAUNCH_DIRECTION.x ) * leech.radius * 1.25f, leech.getCenter().y ) );*/
 }
 
 void RetroRenderer::renderEnter( glm::vec2 center, glm::vec2 size ) const {

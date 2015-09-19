@@ -243,12 +243,6 @@
     <None Include="ikpFlac.dll" />
     <None Include="ikpMP3.dll" />
     <None Include="irrKlang.dll" />
-    <None Include="particle.fs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="particle.vs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
     <None Include="post_effects.fs">
       <Filter>Resource Files\shaders</Filter>
     </None>
