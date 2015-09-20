@@ -16,7 +16,7 @@ GravityPong::GravityPong( GLuint width, GLuint height )
 
 GravityPong::~GravityPong() {
 	delete textRenderer;
-	delete soundEngine;
+	soundEngine->drop();
 	delete spriteRenderer;
 	delete particlesRenderer;
 	delete postEffectsRenderer;
@@ -81,6 +81,7 @@ void GravityPong::init() {
 	ResourceManager::loadTexture( "inverse_punishment.png", GL_TRUE, "inverse_punishment" );
 	ResourceManager::loadTexture( "trail_punishment.png", GL_TRUE, "trail_punishment" );
 	ResourceManager::loadTexture( "blind_punishment.png", GL_TRUE, "blind_punishment" );
+	ResourceManager::loadTexture( "flip_punishment.png", GL_TRUE, "flip_punishment" );
 
 	// create player paddles
 	glm::vec2 playerPos = glm::vec2( 0.0f, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
@@ -104,7 +105,7 @@ void GravityPong::init() {
 	// create sound engine
 	soundEngine = irrklang::createIrrKlangDevice();
 	soundEngine->play2D( "breakout.mp3", GL_TRUE );
-	soundEngine->setSoundVolume( 0.25f );
+	soundEngine->setSoundVolume( 0.75f );
 
 	// initialize player energy levels
 	p1Energy = 1000.0f;
@@ -123,9 +124,11 @@ void GravityPong::processInput( const GLfloat dt ) {
 
 	if ( keys[GLFW_KEY_P] && !keysProcessed[GLFW_KEY_P] ) {
 		if ( state == GAME_PAUSED ) {
+			soundEngine->setAllSoundsPaused( GL_FALSE );
 			state = GAME_ACTIVE;
 		} else if ( state == GAME_ACTIVE ) {
 			state = GAME_PAUSED;
+			soundEngine->setAllSoundsPaused( GL_TRUE );
 		}
 		keysProcessed[GLFW_KEY_P] = GL_TRUE;
 	}
@@ -151,6 +154,11 @@ void GravityPong::processInput( const GLfloat dt ) {
 				p1ChargingGravBall = new GravityBall( glm::vec2( player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f );
 				p1ChargingGravBall->setReversed( p1IsGravReversed );
 				p1Energy -= GRAV_BALL_COST;
+
+				// play gravity sound
+				p1ChargingGravBall->sound = soundEngine->play2D( "gravity_sound.wav", GL_TRUE, GL_FALSE, GL_TRUE );
+				p1ChargingGravBall->sound->setVolume( 0.5f );
+
 			} else if ( p1ChargingGravBall != nullptr ) {
 				p1ChargingGravBall->growBall( dt, p1Energy );
 				p1ChargingGravBall->pos = glm::vec2( player1->size.x, player1->getCenter().y - p1ChargingGravBall->radius );
@@ -162,6 +170,11 @@ void GravityPong::processInput( const GLfloat dt ) {
 				p2ChargingGravBall = new GravityBall( glm::vec2( width - player2->size.x - GRAV_STARTING_RADIUS * 2.0f, player2->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f );
 				p2ChargingGravBall->setReversed( p2IsGravReversed );
 				p2Energy -= GRAV_BALL_COST;
+
+				// play gravity sound
+				p2ChargingGravBall->sound = soundEngine->play2D( "gravity_sound.wav", GL_TRUE, GL_FALSE, GL_TRUE );
+				p2ChargingGravBall->sound->setVolume( 0.5f );
+
 			} else if ( p2ChargingGravBall != nullptr ) {
 				p2ChargingGravBall->growBall( dt, p2Energy );
 				p2ChargingGravBall->pos = glm::vec2( width - player2->size.x - p2ChargingGravBall->size.x, player2->getCenter().y - p2ChargingGravBall->radius );
@@ -186,7 +199,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 		// fires and detonates missiles
 		if ( keys[GLFW_KEY_E] ) {
 			if ( p1Missile == nullptr && p1Energy >= MISSILE_COST && p1MissileCooldown <= 0.0f ) {
-				p1Missile = new Missile( glm::vec2( player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "tech_missile" ), ball );
+				p1Missile = new Missile( glm::vec2( player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "tech_missile" ), ball, 0.0f, *soundEngine );
 				p1Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
 				p1Energy -= MISSILE_COST;
 				keysProcessed[GLFW_KEY_E] = GL_TRUE;
@@ -197,7 +210,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 		}
 		if ( keys[GLFW_KEY_KP_0] ) {
 			if ( p2Missile == nullptr && p2Energy >= MISSILE_COST && p2MissileCooldown <= 0.0f ) {
-				p2Missile = new Missile( glm::vec2( player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "alien_missile" ), ball, 180.0f );
+				p2Missile = new Missile( glm::vec2( player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f ), MISSILE_SIZE, ResourceManager::getTexture( "alien_missile" ), ball, 180.0f, *soundEngine, 180.0f );
 				p2Missile->setBoundaries( 0.0f, width, heightRange.x, heightRange.y );
 				p2Energy -= MISSILE_COST;
 				keysProcessed[GLFW_KEY_KP_0] = GL_TRUE;
@@ -240,6 +253,9 @@ void GravityPong::processInput( const GLfloat dt ) {
 				glm::vec2 pos = glm::vec2( player1->getCenter().x + player1->size.x / 2.0f - GRAPPLE_ANCHOR_RADIUS, player1->getCenter().y - GRAPPLE_ANCHOR_RADIUS );
 				p1Grapple = new GrappleAttack( player1, player2, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2( GRAPPLE_SPEED, 0.0f ), width, GRAPPLE_DURATION );
 				p1Energy -= GRAPPLE_COST;
+
+				// play grapple sound
+				soundEngine->play2D( "grapple_release.wav", GL_FALSE );
 			}
 		}
 		if ( keys[GLFW_KEY_RIGHT_SHIFT] && p2Grapple == nullptr ) {
@@ -247,6 +263,9 @@ void GravityPong::processInput( const GLfloat dt ) {
 				glm::vec2 pos = glm::vec2( player2->pos.x - GRAPPLE_ANCHOR_RADIUS, player2->getCenter().y - GRAPPLE_ANCHOR_RADIUS );
 				p2Grapple = new GrappleAttack( player2, player1, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2( -GRAPPLE_SPEED, 0.0f ), width, GRAPPLE_DURATION );
 				p2Energy -= GRAPPLE_COST;
+
+				// play grapple sound
+				soundEngine->play2D( "grapple_release.wav", GL_FALSE );
 			}
 		}
 	} else if ( state == GAME_OVER ) {
@@ -270,7 +289,7 @@ void GravityPong::update( const GLfloat dt ) {
 
 		player1->update( dt, heightRange );
 		player2->update( dt, heightRange );
-		ball->update( dt, heightRange );
+		ball->update( dt, heightRange, *soundEngine );
 
 
 		handleCooldowns( dt );
@@ -384,9 +403,9 @@ void GravityPong::renderNormal() {
 	for ( GravityBall& gravBall : gravityBalls ) {
 		gravBall.draw( *spriteRenderer );
 		if ( gravBall.selectedBy == P1_SELECTED ) {
-			textRenderer->renderText( "P1", gravBall.pos.x, gravBall.pos.y, 1.0f, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+			textRenderer->renderText( "P1", gravBall.pos.x, gravBall.pos.y, 1.0f, glm::vec3( 0.57f, 0.80f, 0.97f ) );
 		} else if ( gravBall.selectedBy == P2_SELECTED ) {
-			textRenderer->renderText( "P2", gravBall.pos.x, gravBall.pos.y, 1.0f, glm::vec3( 0.5f, 0.85f, 0.85f ) );
+			textRenderer->renderText( "P2", gravBall.pos.x, gravBall.pos.y, 1.0f, glm::vec3( 0.72f, 0.63f, 1.00f ) );
 		}
 	}
 
@@ -495,6 +514,9 @@ void GravityPong::handleCollisions() {
 	if ( std::get<0>( playerCollision ) ) {
 		player = player1;
 
+		// player bounce sound
+		soundEngine->play2D( "tech_bounce.wav", GL_FALSE );
+
 		// give player energy on bounce
 		if ( p1BounceCooldown <= 0.0f ) {
 			addEnergy( P1_SELECTED, ENERGY_PER_BOUNCE );
@@ -505,6 +527,9 @@ void GravityPong::handleCollisions() {
 		playerCollision = checkBallRectCollision( *ball, *player2 );
 		if ( std::get<0>( playerCollision ) ) {
 			player = player2;
+
+			// player bounce sound
+			soundEngine->play2D( "alien_bounce.wav", GL_FALSE );
 
 			// give player energy on bounce
 			if ( p2BounceCooldown <= 0.0f ) {
@@ -588,22 +613,28 @@ void GravityPong::handleCollisions() {
 	} ), leechAttacks.end() );
 
 	// check for grapple collision with target
-	if ( p1Grapple != nullptr && p1Grapple->isAlive ) {
+	if ( p1Grapple != nullptr && !p1Grapple->isAttached && p1Grapple->isAlive ) {
 		Collision collision = checkBallRectCollision( p1Grapple->anchors.front(), *p1Grapple->target );
 		if ( std::get<0>( collision ) ) {
 			p1Grapple->attachToTarget();
+
+			// play grapple sound
+			soundEngine->play2D( "grapple_attach.wav", GL_FALSE );
 		}
-	} else if ( p1Grapple != nullptr ) {
+	} else if ( p1Grapple != nullptr && !p1Grapple->isAlive ) {
 		// delete grapple
 		delete p1Grapple;
 		p1Grapple = nullptr;
 	}
-	if ( p2Grapple != nullptr && p2Grapple->isAlive ) {
+	if ( p2Grapple != nullptr && !p2Grapple->isAttached && p2Grapple->isAlive ) {
 		Collision collision = checkBallRectCollision( p2Grapple->anchors.front(), *p2Grapple->target );
 		if ( std::get<0>( collision ) ) {
 			p2Grapple->attachToTarget();
+
+			// play grapple sound
+			soundEngine->play2D( "grapple_attach.wav", GL_FALSE );
 		}
-	} else if ( p2Grapple != nullptr ) {
+	} else if ( p2Grapple != nullptr && !p2Grapple->isAlive ) {
 		// delete grapple
 		delete p2Grapple;
 		p2Grapple = nullptr;
@@ -619,6 +650,9 @@ void GravityPong::handleCollisions() {
 			if ( std::get<0>( playerCollision ) ) {
 				resolveBallPlayerCollision( gravBall, *player1, 1 );
 
+				// player bounce sound
+				soundEngine->play2D( "tech_bounce.wav", GL_FALSE );
+
 				// set grav ball to selected
 				unselectGravBall( P1_SELECTED );
 				gravBall.selectedBy = P1_SELECTED;
@@ -633,6 +667,9 @@ void GravityPong::handleCollisions() {
 				playerCollision = checkBallRectCollision( gravBall, *player2 );
 				if ( std::get<0>( playerCollision ) ) {
 					resolveBallPlayerCollision( gravBall, *player2, 2 );
+
+					// player bounce sound
+					soundEngine->play2D( "alien_bounce.wav", GL_FALSE );
 
 					// set grav ball to selected
 					unselectGravBall( P2_SELECTED );
@@ -825,6 +862,9 @@ void GravityPong::resetGame() {
 
 	// reset punishment
 	clearPunishment();
+
+	// stop all sounds
+	soundEngine->stopAllSounds();
 }
 
 void GravityPong::resolveBallPlayerCollision( BallObject& ball, const PaddleObject player, const int num ) {
@@ -875,12 +915,12 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 	}
 	for ( GravityBall& gravBall : gravityBalls ) {
 		gravBall.update( dt, heightRange );
-		gravBall.pullObject( dt, *ball );
+		gravBall.pullObject( dt, *ball, *soundEngine );
 	}
 	// pull missiles
 	if ( p1Missile != nullptr ) {
 		for ( GravityBall& gravBall : gravityBalls ) {
-			gravBall.pullObject( dt, *p1Missile );
+			gravBall.pullObject( dt, *p1Missile, *soundEngine );
 		}
 	}
 
@@ -968,7 +1008,7 @@ void GravityPong::renderGUI() const {
 		image = ResourceManager::getTexture( "blind_punishment" );
 		break;
 	case FLIP:
-		image = ResourceManager::getTexture( "blind_punishment" );
+		image = ResourceManager::getTexture( "flip_punishment" );
 		break;
 	}
 
@@ -1220,6 +1260,13 @@ void GravityPong::dealPunishment() {
 		}
 		break;
 	}
+
+	// player punishment sound
+	if ( punishment.player == P1_SELECTED ) {
+		soundEngine->play2D( "tech_punished.wav", GL_FALSE );
+	} else {
+		soundEngine->play2D( "alien_punished.wav", GL_FALSE );
+	}
 }
 
 void GravityPong::clearPunishment() {
@@ -1247,31 +1294,22 @@ void GravityPong::clearPunishment() {
 	nextPunishmentType = (PUNISHMENT_TYPE)randomPunishment;
 }
 
-void GravityPong::rotateRectangle( glm::vec2 rect[4], GLfloat rotation, const glm::vec2 center ) const {
-	GLfloat tmpX, tmpY;
-	rotation *= ( PI / 180.0f );
-	for ( int i = 0; i < 4; ++i ) {
-		// translate point with respect to origin
-		rect[i] -= center;
-		tmpX = rect[i].x * std::cos( rotation ) - rect[i].y * std::sin( rotation );
-		tmpY = rect[i].x * std::sin( rotation ) + rect[i].y * std::cos( rotation );
-		rect[i].x = tmpX;
-		rect[i].y = tmpY;
-		rect[i] += center;
-	}
-}
-
 void GravityPong::causeMissileExplosion( const Missile& missile, const GLboolean missileCheck ) {
 	// add explosion to the game
 	std::string textureName = &missile == p1Missile ? "tech_explosion" : "alien_explosion";
 	explosions.push_back( Explosion( missile.getCenter() - EXPLOSION_RADIUS, EXPLOSION_RADIUS, ResourceManager::getTexture( textureName ), EXPLOSION_TIME ) );
+
+	// play explosion sound
+	irrklang::ISound* sound = soundEngine->play2D( "explosion_sound.flac", GL_FALSE, GL_TRUE );
+	sound->setVolume( 0.75f );
+	sound->setIsPaused( GL_FALSE );
 
 	// check to see if ball was in the explosion
 	GLfloat ballDist = glm::distance( ball->getCenter(), missile.getCenter() );
 	if ( ballDist <= EXPLOSION_RADIUS ) {
 		// launch the ball
 		glm::vec2 ballDir = glm::normalize( ball->getCenter() - missile.getCenter() );
-		ball->vel += MISSILE_POWER * ( 1.0f - ( ballDist / EXPLOSION_RADIUS ) ) * ballDir;
+		ball->vel += MISSILE_POWER * ( 0.5f + ( 0.5f - ( ballDist / EXPLOSION_RADIUS ) ) ) * ballDir;
 	}
 
 	// check to see if gravity balls were hit in the explosion

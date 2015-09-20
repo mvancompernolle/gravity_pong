@@ -11,6 +11,7 @@
 #include "SpriteRenderer.h"
 #include "BallObject.h"
 #include "player_selected.h"
+#include <irrklang/irrKlang.h>
 
 const int PRE_LAUNCH_TIME = 3.0f;
 
@@ -22,7 +23,7 @@ public:
 	GameBall();
 	GameBall( const glm::vec2 pos, const GLfloat radius, const float speed, const Texture sprite );
 	~GameBall();
-	void			update( const GLfloat dt, const glm::vec2 heightRange );
+	void			update( const GLfloat dt, const glm::vec2 heightRange, irrklang::ISoundEngine& soundEngine );
 	void			reset( glm::vec2 position, glm::vec2 velocity );
 	void			startLaunch( const PLAYER_SELECTED selected = NO_ONE );
 };

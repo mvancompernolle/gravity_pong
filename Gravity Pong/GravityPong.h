@@ -155,7 +155,7 @@ public:
 	const GLuint MISSILE_COST = 300;
 	const GLuint MISSILE_POWER = 2000;
 	const GLfloat EXPLOSION_TIME = 0.5f;
-	const GLfloat EXPLOSION_RADIUS = 150.0f;
+	const GLfloat EXPLOSION_RADIUS = 200.0f;
 	const GLfloat EXPLOSION_STUN_TIME = 1.0f;
 	const glm::vec2 MISSILE_SIZE;
 
@@ -200,7 +200,6 @@ private:
 	PostProcessor*				postEffectsRenderer;
 	ParticleGenerator*			particlesRenderer;
 	TextRenderer*				textRenderer;
-	irrklang::ISoundEngine*		soundEngine;
 	GLuint						p1Lives, p2Lives;
 	PaddleObject				*player1, *player2;
 	GameBall*					ball;
@@ -218,6 +217,9 @@ private:
 	PUNISHMENT_TYPE						nextPunishmentType;
 	Punishment					punishment;
 	GLboolean					p1IsGravReversed, p2IsGravReversed;
+
+	// sounds
+	irrklang::ISoundEngine*		soundEngine;
 
 	void						renderNormal( );
 	void						renderRetro( );
@@ -237,7 +239,6 @@ private:
 	void						handleCooldowns( const GLfloat dt );
 	void						dealPunishment();
 	void						clearPunishment();
-	void						rotateRectangle( glm::vec2 rect[4], const GLfloat rotation, const glm::vec2 center = glm::vec2( 0.0f ) ) const;
 	void						causeMissileExplosion( const Missile& missile, const GLboolean missileCheck = GL_TRUE );
 	void						deleteMissile( Missile*& missile );
 	void						addEnergy( PLAYER_SELECTED player, GLfloat energy );

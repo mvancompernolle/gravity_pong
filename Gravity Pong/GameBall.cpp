@@ -23,15 +23,25 @@ GameBall::~GameBall() {
 
 }
 
-void GameBall::update( const GLfloat dt, const glm::vec2 heightRange ) {
+void GameBall::update( const GLfloat dt, const glm::vec2 heightRange, irrklang::ISoundEngine& soundEngine ) {
 	pos += vel * dt;
 	// check if outside window bounds, if so reverse velocity and correct pos
 	if ( pos.y <= heightRange.x ) {
 		vel.y = -vel.y;
 		pos.y = heightRange.x;
+
+		// play grapple sound
+		irrklang::ISound* sound = soundEngine.play2D( "wall_bounce.wav", GL_FALSE, GL_TRUE );
+		sound->setVolume( 0.75f );
+		sound->setIsPaused( GL_FALSE );
+
 	} else if( pos.y + size.y >= heightRange.y ) {
 		vel.y = -vel.y;
 		pos.y = heightRange.y - size.y;
+
+		irrklang::ISound* sound = soundEngine.play2D( "wall_bounce.wav", GL_FALSE, GL_TRUE );
+		sound->setVolume( 0.75f );
+		sound->setIsPaused( GL_FALSE );
 	}
 
 	if ( isLaunching ) {
