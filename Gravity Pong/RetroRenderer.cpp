@@ -131,8 +131,16 @@ void RetroRenderer::renderMissile( const Missile& missile ) const {
 }
 
 void RetroRenderer::renderLeech( const LeechAttack& leech ) const {
-	/*renderCircle( leech.getCenter(), leech.radius, 12 );
-	renderLine( leech.getCenter(), glm::vec2( leech.getCenter().x + glm::normalize( leech.LAUNCH_DIRECTION.x ) * leech.radius * 1.25f, leech.getCenter().y ) );*/
+	glm::vec2 rect[4];
+	leech.getVertices( rect );
+	// render rotated rectangle
+	renderLine( rect[0], rect[1] );
+	renderLine( rect[1], rect[2] );
+	renderLine( rect[2], rect[3] );
+	renderLine( rect[3], rect[0] );
+	renderLine( rect[3], rect[0] );
+	// render line from middle to center front
+	renderLine( ( rect[2] + rect[1] ) / 2.0f, leech.getCenter() );
 }
 
 void RetroRenderer::renderEnter( glm::vec2 center, glm::vec2 size ) const {
@@ -171,14 +179,7 @@ void RetroRenderer::renderPlayerSymbol( PLAYER_SELECTED player, glm::vec2 pos ) 
 }
 
 void RetroRenderer::renderGrapple( const GrappleAttack& grapple ) const {
-	/*// render links
-	for ( int i = 0; i < grapple.NUM_ANCHORS - 1; ++i ) {
-		glm::vec2 diff = glm::normalize(grapple.anchors[i + 1].getCenter() - grapple.anchors[i].getCenter());
-		renderLine( grapple.anchors[i].getCenter() + diff * grapple.anchors[i].radius, grapple.anchors[i+1].getCenter() - diff * grapple.anchors[i+1].radius );
-	}
-
-	// render anchors
-	for ( const BallObject& anchor : grapple.anchors ) {
-		renderCircle( anchor.getCenter(), anchor.radius, 10 );
-	}*/
+	// draw line from creator to target
+	renderLine( grapple.creator->getCenter(), grapple.endSticker->getCenter() );
+	renderCircle( grapple.endSticker->getCenter(), grapple.endSticker->radius, 10 );
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game/Rendering-Sprites
+
 #ifndef SPRITE_RENDERER_H
 #define SPRITE_RENDERER_H
 

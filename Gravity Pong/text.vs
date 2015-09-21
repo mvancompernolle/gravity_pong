@@ -1,3 +1,5 @@
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game
+
 #version 430 core
 
 layout ( location = 0 ) in vec4 vsVert;

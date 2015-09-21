@@ -1,3 +1,5 @@
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game
+
 #version 430 core
 in vec2 fs_tex;
 out vec4 color;

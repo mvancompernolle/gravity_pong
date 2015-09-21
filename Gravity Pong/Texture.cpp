@@ -1,5 +1,7 @@
 #include "Texture.h"
 
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game/Setting-up
+
 Texture::Texture() : width(0), height(0), internalFormat(GL_RGB), imageFormat(GL_BGR), wrapS(GL_REPEAT), wrapT(GL_REPEAT), filterMin(GL_LINEAR), filterMax(GL_LINEAR) {
 	glGenTextures(1, &ID);
 }

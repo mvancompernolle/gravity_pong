@@ -11,7 +11,7 @@ public:
 	GLboolean	keys[1024], keysProcessed[1024];
 
 	// game resolution
-	GLuint		width, height;
+	GLuint			width, height;
 
 					Game( GLuint width, GLuint height );
 	virtual			~Game();

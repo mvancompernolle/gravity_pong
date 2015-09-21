@@ -75,44 +75,44 @@
     <Image Include="white_color.png">
       <Filter>Resource Files\images</Filter>
     </Image>
-    <Image Include="gui_background.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="link.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="gui_background_backup.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="gui_background.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="l_side_punishment_panel.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="life.png">
-      <Filter>Resource Files</Filter>
+    <Image Include="abuse_punishment.png">
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="energy.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="gui_background.jpg">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="gui_background.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="gui_background_backup.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="l_side_punishment_panel.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="life.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="link.png">
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="punishment_template.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="purple_color.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="r_side_punishment_panel.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="side_punishment_panel.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
     <Image Include="slow_punishment.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="abuse_punishment.png">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\images</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -262,14 +262,14 @@
     <None Include="pp_blind.fs">
       <Filter>Resource Files\shaders</Filter>
     </None>
+    <None Include="pp_flip.fs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
     <None Include="pp_default.fs">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="pp_default.vs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="pp_flip.fs">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

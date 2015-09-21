@@ -9,13 +9,13 @@ GravityBall::GravityBall( const glm::vec2 pos, const GLfloat radius, const Textu
 
 GravityBall::~GravityBall() {
 	if ( sound != nullptr ) {
-		std::cout << "sound stopped" << std::endl;
 		sound->stop();
 		sound = nullptr;
 	}
 }
 
 void GravityBall::growBall( const GLfloat dt, GLfloat& energy ) {
+	// increase size of gravity ball based on time passed and use correct amount of energy
 	GLfloat oldRadius = radius;
 	radius = std::min( MAX_RADIUS, radius + GROWTH_RATE * dt );
 	size = glm::vec2( radius * 2.0f, radius * 2.0f );
@@ -42,6 +42,7 @@ void GravityBall::update( const GLfloat dt, const glm::vec2 heightRange ) {
 			pos.y = heightRange.y - size.y;
 		}
 	} else {
+		// shrink the gravity ball if it is collapsing
 		if ( radius > 0.0f ) {
 			glm::vec2 mid = getCenter();
 			radius -= GROWTH_RATE / 10.0f * dt;
@@ -53,9 +54,13 @@ void GravityBall::update( const GLfloat dt, const glm::vec2 heightRange ) {
 
 void GravityBall::pullObject( const GLfloat dt, GameObject& object, irrklang::ISoundEngine& soundEngine ) {
 	GLfloat dist = glm::distance( pos + radius, object.pos + size / 2.0f );
+
+	// pull object if it is in range of the gravity ball
 	if ( dist <= MAX_RADIUS * 15.0f ) {
 		// get pull direction
 		glm::vec2 dir = glm::normalize( pos - object.pos );
+
+		// calculate pull strength
 		glm::vec2 pull = dir * ( 1.0f - ( dist / ( MAX_RADIUS * 15.0f ) ) ) * ( radius * object.mass ) * dt;
 		if ( !isReversed ) {
 			object.vel += pull;
@@ -67,7 +72,7 @@ void GravityBall::pullObject( const GLfloat dt, GameObject& object, irrklang::IS
 		if ( ( sound != nullptr && sound->isFinished() ) || sound == nullptr ) {
 			sound = soundEngine.play2D( "gravity_sound.wav", GL_FALSE, GL_TRUE );
 			sound->setVolume( 0.4f );
-			sound->setPlayPosition( sound->getPlayLength() * ( 7.0f / 8.0f ) );
+			sound->setPlaybackSpeed( 0.5f );
 			sound->setIsPaused( GL_FALSE );
 		}
 

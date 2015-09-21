@@ -6,6 +6,8 @@
 
 #include <FreeImagePlus.h>
 
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game/Setting-up
+
 // instantiate static variables
 std::map<std::string, Texture> ResourceManager::textures;
 std::map<std::string, Shader> ResourceManager::shaders;

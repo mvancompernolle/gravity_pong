@@ -1,5 +1,7 @@
 #include "SpriteRenderer.h"
 
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game/Rendering-Sprites
+
 SpriteRenderer::SpriteRenderer(Shader& shader) {
 	this->shader = shader;
 	initRenderData();

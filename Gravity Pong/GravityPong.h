@@ -42,9 +42,9 @@ enum Direction {
 };
 
 enum PUNISHMENT_TYPE {
-	SLOW, 
+	SLOW,
 	SHRINK,
-	ABUSE, 
+	ABUSE,
 	INVERSE,
 	TRAIL,
 	BLIND,
@@ -74,7 +74,7 @@ struct Punishment {
 		this->player = player;
 		this->paddle = paddle;
 
-		switch( type ) {
+		switch ( type ) {
 		case SLOW:
 			timeLeft = 10.0f;
 			charges = 0;
@@ -88,7 +88,7 @@ struct Punishment {
 			charges = 3;
 			break;
 		case INVERSE:
-			timeLeft = 10.0f;
+			timeLeft = 5.0f;
 			charges = 0;
 			break;
 		case TRAIL:
@@ -107,7 +107,7 @@ struct Punishment {
 	}
 
 	static std::string getPunishmentName( PUNISHMENT_TYPE type ) {
-		switch( type ) {
+		switch ( type ) {
 		case SLOW:
 			return "Slow";
 			break;
@@ -136,8 +136,17 @@ struct Punishment {
 
 class GravityPong : public Game {
 public:
+	GravityPong( GLuint width, GLuint height );
+	~GravityPong();
+	void	init();
+	void	processInput( const GLfloat dt );
+	void	update( const GLfloat dt );
+	void	render();
+
+private:
 	// GUI
 	const GLfloat GUI_PERCENT = 0.15f;
+	const GLfloat GAME_VOLUME = 0.5f;
 
 	// ball constants
 	const GLfloat DEFAULT_BALL_SPEED = 1000.0f;
@@ -185,14 +194,6 @@ public:
 	const GLfloat SHRINK_AMOUNT = 0.65;
 	const GLfloat BLIND_RANGE = 400.0f;
 
-			GravityPong( GLuint width, GLuint height );
-			~GravityPong();
-	void	init();
-	void	processInput( const GLfloat dt );
-	void	update( const GLfloat dt );
-	void	render();
-
-private:
 	GLboolean					inRetroMode;
 	GameState					state;
 	SpriteRenderer*				spriteRenderer;
@@ -214,15 +215,15 @@ private:
 	glm::vec2					heightRange;
 	GLfloat						p1BounceCooldown, p2BounceCooldown;
 	GLfloat						nextPunishmentCountdown;
-	PUNISHMENT_TYPE						nextPunishmentType;
+	PUNISHMENT_TYPE				nextPunishmentType;
 	Punishment					punishment;
 	GLboolean					p1IsGravReversed, p2IsGravReversed;
 
 	// sounds
 	irrklang::ISoundEngine*		soundEngine;
 
-	void						renderNormal( );
-	void						renderRetro( );
+	void						renderNormal();
+	void						renderRetro();
 	void						renderGUIRetro() const;
 	void						renderGUI() const;
 	GLboolean					checkRectRectCollision( const GameObject& one, const GameObject& two ) const;

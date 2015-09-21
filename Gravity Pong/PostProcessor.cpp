@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+// Reference: http://learnopengl.com/#!In-Practice/2D-Game/Postprocessing
+
 PostProcessor::PostProcessor( GLuint width, GLuint height )
 	: texture(), width( width ), height( height ), blind( GL_FALSE ), flip( GL_FALSE ), blindedPlayer( nullptr ) {
 

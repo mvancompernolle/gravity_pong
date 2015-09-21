@@ -1,5 +1,7 @@
 #pragma once
 
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game/Setting-up
+
 #ifndef SHADER_H
 #define SHADER_H
 

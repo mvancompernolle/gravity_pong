@@ -1,5 +1,7 @@
 #pragma once
 
+// Reference:: http://learnopengl.com/#!In-Practice/2D-Game/Particles
+
 #ifndef PARTICLE_GENERATOR_H
 #define PARTICLE_GENERATOR_H
 
@@ -38,9 +40,9 @@ private:
 	Texture					texture;
 	GLuint					lastUsedParticle;
 	
-	void	init();
-	GLuint	firstUnusedParticle();
-	void	respawnParticle( Particle& particle, const glm::vec2 pos, const glm::vec3 color, const GLfloat rotation = 0.0f );
+	void					init();
+	GLuint					firstUnusedParticle();
+	void					respawnParticle( Particle& particle, const glm::vec2 pos, const glm::vec3 color, const GLfloat rotation = 0.0f );
 };
 
 #endif // PARTICLE_GENERATOR_H

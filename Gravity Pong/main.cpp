@@ -6,6 +6,8 @@
 #include "ResourceManager.h"
 #include "GravityPong.h"
 
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game/Setting-up
+
 void keyCallBack( GLFWwindow* window, int key, int scanCode, int action, int mode );
 
 // declare callbacks for GLFW

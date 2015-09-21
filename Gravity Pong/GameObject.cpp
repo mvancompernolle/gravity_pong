@@ -1,7 +1,8 @@
 #include "GameObject.h"
 
-const float PI = 3.14159265358;
+// REFERENCE: http://learnopengl.com/#!In-Practice/2D-Game/Levels
 
+const float PI = 3.14159265358;
 
 GameObject::GameObject() : pos( 0, 0 ), size( 1, 1 ), vel( 0.0f ), color( 1.0f ), rotation( 0.0f ), sprite(), isSolid( false ), isDestroyed( false ), mass( 50.0f ) {
 
@@ -26,6 +27,7 @@ glm::vec2 GameObject::getCenter() const {
 }
 
 void GameObject::getVertices( glm::vec2 vertices[4] ) const {
+	// get non rotated vertices
 	vertices[0] = glm::vec2( pos.x, pos.y );
 	vertices[1] = glm::vec2( pos.x + size.x, pos.y );
 	vertices[2] = glm::vec2( pos.x + size.x, pos.y + size.y );
@@ -35,7 +37,7 @@ void GameObject::getVertices( glm::vec2 vertices[4] ) const {
 		GLfloat tmpX, tmpY;
 		GLfloat rot = glm::radians(rotation);
 		for( int i = 0; i < 4; ++i ) {
-			// translate point with respect to origin
+			// rotate vertex with respect to origin
 			vertices[i] -= getCenter();
 			tmpX = vertices[i].x * std::cos( rot ) - vertices[i].y * std::sin( rot );
 			tmpY = vertices[i].x * std::sin( rot ) + vertices[i].y * std::cos( rot );

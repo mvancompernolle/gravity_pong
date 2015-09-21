@@ -19,8 +19,7 @@ public:
 	const GLfloat			PULL_STRENGTH;
 	const GLfloat			TIGHTEN_VELOCITY = 300.0f;
 
-	std::vector<GameObject>	links;
-	std::vector<BallObject>	anchors;
+	BallObject*				endSticker;
 	glm::vec2				closeAnchorOffset, farAnchorOffset;
 	GameObject				*creator, *target;
 	GLboolean				isAlive, isAttached;
@@ -29,7 +28,7 @@ public:
 
 							GrappleAttack( GameObject* creator, GameObject* target, glm::vec2 pos, GLfloat anchorRadius, glm::vec2 vel, GLuint width, GLfloat duration = 5.0f );
 							~GrappleAttack();
-	void					update( const GLfloat dt );
+	void					update( GLfloat dt );
 	void					draw( SpriteRenderer& renderer );
 	void					attachToTarget();
 };

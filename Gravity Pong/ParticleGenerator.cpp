@@ -1,5 +1,7 @@
 #include "ParticleGenerator.h"
 
+// Reference:: http://learnopengl.com/#!In-Practice/2D-Game/Particles
+
 #include <iostream>
 
 ParticleGenerator::ParticleGenerator( const Texture texture, const GLuint amount, GLfloat particleSize )

@@ -11,6 +11,7 @@ Explosion::~Explosion() {
 }
 
 void Explosion::update( const GLfloat dt ) {
+	// have the explosion shirnk over time and become less bright
 	if( timeLeft > 0.0f ) {
 		timeLeft -= dt;
 		radius -= SHRINK_RATE * dt;

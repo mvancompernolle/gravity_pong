@@ -1,13 +1,13 @@
 #pragma once
 
+#ifndef GRAVITY_BALL_H
+#define GRAVITY_BALL_H
+
 #include <GL/glew.h>
 
 #include "BallObject.h"
 #include "player_selected.h"
 #include <irrklang/irrKlang.h>
-
-#ifndef GRAVITY_BALL_H
-#define GRAVITY_BALL_H
 
 class GravityBall : public BallObject {
 public:

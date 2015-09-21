@@ -3,7 +3,9 @@
 
 LeechAttack::LeechAttack( glm::vec2 pos, glm::vec2 size, Texture sprite, glm::vec2 dir, GameObject* target, GLfloat leechAmount, GLfloat duration )
 	: GameObject( pos, size, sprite, glm::vec4( 1.0f ), dir ), amountLeeched( 0.0f ), MAX_LEECH_AMOUNT( leechAmount ), LAUNCH_DIRECTION( dir ), timeLeft( duration ), target( target ), isAlive( GL_TRUE ), isAttached( GL_FALSE ),
-	STARTING_SIZE( size ), MAX_SIZE ( size * 1.5f ), desiredRotation( 0.0f ), TURN_RATE( 90.0f ), isReturning( GL_FALSE ){
+	STARTING_SIZE( size ), MAX_SIZE ( size * 1.5f ), desiredRotation( 0.0f ), TURN_RATE( 75.0f ), isReturning( GL_FALSE ), isGettingEnergy( GL_FALSE ){
+
+	// rotate leech to face launch direction
 	if ( LAUNCH_DIRECTION.x < 0 ) {
 		desiredRotation = 180.0f;
 		rotation = 180.0f;
@@ -20,8 +22,8 @@ void LeechAttack::update( const GLfloat dt ){
 		if ( !isReturning ) {
 			// get distance to the player
 			GLfloat dist = glm::distance( getCenter(), target->getCenter() );
-			if ( dist <= glm::length( vel ) / 3.0f ) {
-				// determine desired direction to intercept
+			if ( dist <= glm::length( vel ) / 2.0f ) {
+				// curve toward target if within distance
 				glm::vec2 posDiff = target->getCenter() - getCenter();
 				// rotation 0 to 360 going clockwise
 				desiredRotation = glm::degrees( std::atan2( posDiff.y, posDiff.x ) );
@@ -31,7 +33,6 @@ void LeechAttack::update( const GLfloat dt ){
 
 				if ( std::abs( desiredRotation - rotation ) < TURN_RATE * dt ) {
 					rotation = desiredRotation;
-					//std::cout << "not turning\n" << std::endl;
 				} else {
 					if ( ( desiredRotation > rotation && desiredRotation - rotation <= 180 ) || ( desiredRotation < rotation && rotation - desiredRotation >= 180 ) ) {
 						rotation += TURN_RATE * dt;
@@ -39,7 +40,7 @@ void LeechAttack::update( const GLfloat dt ){
 						rotation -= TURN_RATE * dt;
 					}
 
-					// keep rotation is correct range
+					// keep rotation in correct range
 					if ( rotation < 0 ) {
 						rotation += 360.0f;
 					} else if ( rotation > 360.0f ) {
@@ -53,6 +54,7 @@ void LeechAttack::update( const GLfloat dt ){
 			}
 		}
 
+		// update leech position
 		pos += vel * dt;
 	} else {
 		timeLeft -= dt;
@@ -76,9 +78,26 @@ void LeechAttack::detachLeech() {
 	offset = glm::vec2(0.0f);
 	vel = -LAUNCH_DIRECTION / 2.0f;
 	rotation = LAUNCH_DIRECTION.x > 0 ? 180.0f : 0.0f;
+
+	// stop sucking sound if it was playing
+	if ( isGettingEnergy ) {
+		std::cout << "stop sound" << std::endl;
+		suckingSound->stop();
+		isGettingEnergy = GL_FALSE;
+	}
 }
 
-GLfloat LeechAttack::addEnergy( const GLfloat energy ){
+GLfloat LeechAttack::addEnergy( const GLfloat energy, irrklang::ISoundEngine& soundEngine ){
+
+	// play sucking sound
+	if ( !isGettingEnergy ) {
+		isGettingEnergy = GL_TRUE;
+		suckingSound = soundEngine.play2D( "leech_suck.wav", GL_TRUE, GL_TRUE, GL_TRUE );
+		suckingSound->setVolume( 0.1f );
+		suckingSound->setPlaybackSpeed( 1.5f );
+		suckingSound->setIsPaused( GL_FALSE );
+	}
+
 	GLfloat leftOverEnergy = 0.0f;
 	amountLeeched += energy;
 	if ( amountLeeched > MAX_LEECH_AMOUNT ) {
@@ -88,7 +107,7 @@ GLfloat LeechAttack::addEnergy( const GLfloat energy ){
 		detachLeech();
 	}
 
-	// calculate radius based on energy
+	// calculate size based on energy
 	glm::vec2 newSize = STARTING_SIZE + ( amountLeeched / MAX_LEECH_AMOUNT ) * ( MAX_SIZE - STARTING_SIZE );
 	newSize.x += abs(sin(timeLeft * 10.0f) * size.x * STRETCH_AMOUNT );
 	if (LAUNCH_DIRECTION.x < 0) {
@@ -99,7 +118,7 @@ GLfloat LeechAttack::addEnergy( const GLfloat energy ){
 	}
 	size = newSize;
 
-
+	// keep position same relative to targets position
 	if ( isAttached ) {
 		offset = target->pos - pos;
 	}

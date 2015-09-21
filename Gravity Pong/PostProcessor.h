@@ -1,5 +1,7 @@
 #pragma once
 
+// Reference: http://learnopengl.com/#!In-Practice/2D-Game/Postprocessing
+
 #ifndef POST_PROCESSOR_H
 #define POST_PROCESSOR_H
 
@@ -11,6 +13,8 @@
 #include "SpriteRenderer.h"
 #include "Shader.h"
 #include "GameObject.h"
+
+// Reference:: http://www.learnopengl.com/#!In-Practice/2D-Game/Postprocessing
 
 class PostProcessor {
 public:

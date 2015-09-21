@@ -8,7 +8,7 @@ Missile::Missile( glm::vec2 pos, glm::vec2 size, Texture sprite, GameObject* tar
 	this->rotation = rotation;
 	this->target = defaultTarget;
 	this->mass = 100.0f;
-	this->targetOffset = ( target->size.x / 2.0f + size.x / 2.0f ) * glm::vec2( cos( glm::radians( 180.0f - goalDirection ) ), sin( glm::radians( 180.0f - goalDirection ) ) );
+	this->targetOffset = ( target->size.x / 2.0f + size.y / 2.0f ) * glm::vec2( cos( glm::radians( 180.0f - goalDirection ) ), sin( glm::radians( 180.0f - goalDirection ) ) );
 
 	this->sound = soundEngine.play2D( "missile_thrustors.wav", GL_TRUE, GL_FALSE, GL_TRUE );
 	sound->setVolume( 0.5f );

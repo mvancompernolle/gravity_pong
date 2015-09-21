@@ -4,6 +4,8 @@
 
 PaddleObject::PaddleObject( const glm::vec2 pos, const glm::vec2 size, const glm::vec4 color, const Texture sprite, const GLfloat speed )
 	: GameObject( pos, size, sprite, color ), stunnedTimer( 0.0f ), speed( speed ), animationTime( ANIMATION_FRAME_TIME ), animationIndex( 0 ) {
+
+	// set animation textures for first or second player
 	if (pos.x < 500) {
 		animations.push_back(ResourceManager::loadTexture("tech_paddle_1.png", GL_TRUE, "tech_paddle_1"));
 		animations.push_back(ResourceManager::loadTexture("tech_paddle_2.png", GL_TRUE, "tech_paddle_2"));
@@ -26,6 +28,7 @@ PaddleObject::~PaddleObject() {
 }
 
 void PaddleObject::move( const PaddleDirection dir ) {
+	// set velocity if not stunned
 	if( stunnedTimer <= 0.0f ) {
 		if( dir == PADDLE_DOWN ) {
 			vel.y = speed;
@@ -36,6 +39,7 @@ void PaddleObject::move( const PaddleDirection dir ) {
 }
 
 void PaddleObject::update( const GLfloat dt, const glm::vec2 heightRange ) {
+	// update paddle position
 	pos.y += vel.y * dt;
 	if( pos.y > heightRange.y - size.y ) {
 		pos.y = heightRange.y - size.y;
@@ -43,14 +47,16 @@ void PaddleObject::update( const GLfloat dt, const glm::vec2 heightRange ) {
 		pos.y = heightRange.x;
 	}
 	
-	stunnedTimer -= dt;
+	if ( stunnedTimer > 0.0f ) {
+		stunnedTimer -= dt;
+	}
 	vel.y = 0.0f;
 
 	// update animations
 	animationTime -= dt;
 	if (animationTime <= 0.0f) {
+		// randomly choose next texture in animation
 		animationTime = ANIMATION_FRAME_TIME;
-		animationIndex++;
 		animationIndex = rand() % animations.size();
 	}
 }

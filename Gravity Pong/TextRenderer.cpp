@@ -1,5 +1,7 @@
 #include "TextRenderer.h"
 
+// Reference: http://www.learnopengl.com/#!In-Practice/2D-Game/Render-text
+
 #include <iostream>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -102,7 +104,6 @@ void TextRenderer::renderText( std::string text, GLfloat x, GLfloat y, GLfloat s
 
 		GLfloat w = ch.size.x * scale;
 		GLfloat h = ch.size.y * scale;
-		//std::cout << text[c] << " h: " << h << std::endl;
 
 		// update VBO for each character
 		GLfloat vertices[6][4] = {
