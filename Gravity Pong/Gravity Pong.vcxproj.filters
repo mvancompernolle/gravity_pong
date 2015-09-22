@@ -25,261 +25,382 @@
       <UniqueIdentifier>{3a3983c5-fd64-4c4f-a7c9-e627f7de7866}</UniqueIdentifier>
       <Extensions>jpg;png;</Extensions>
     </Filter>
-    <Filter Include="Resource Files\audio">
+    <Filter Include="Resource Files\sounds">
       <UniqueIdentifier>{068577de-8ea7-49cb-86b1-f235078ee918}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="background.jpg">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="paddle.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="character.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="gravity_ball.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="arrow_green.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="anchor.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="black_color.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="explosion.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="green_color.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="leech.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="light_blue_color.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="missile.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="red_color.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="smoke.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="white_color.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="abuse_punishment.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="energy.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="gui_background.jpg">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="gui_background.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="gui_background_backup.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="l_side_punishment_panel.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="life.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="link.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="punishment_template.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="purple_color.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="r_side_punishment_panel.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="side_punishment_panel.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-    <Image Include="slow_punishment.png">
-      <Filter>Resource Files\images</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="BallObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SpriteRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GravityPong.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PaddleObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GameBall.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GravityBall.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Missile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Explosion.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LeechAttack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RetroRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GrappleAttack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="BallObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleGenerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SpriteRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GravityPong.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PaddleObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameBall.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GravityBall.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="player_selected.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Missile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Explosion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LeechAttack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RetroRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GrappleAttack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ikpFlac.dll" />
     <None Include="ikpMP3.dll" />
     <None Include="irrKlang.dll" />
-    <None Include="sprite.fs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="sprite.vs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="text.fs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="text.vs">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
     <None Include="FreeImagePlusd.dll" />
     <None Include="FreeImaged.dll" />
     <None Include="glew32.dll" />
     <None Include="glew32d.dll" />
-    <None Include="pp_blind.fs">
+    <None Include="resources\sounds\explosion_sound.flac">
+      <Filter>Resource Files\sounds</Filter>
+    </None>
+    <None Include="resources\shaders\text.vs">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="pp_flip.fs">
+    <None Include="resources\shaders\pp_blind.fs">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="pp_default.fs">
+    <None Include="resources\shaders\pp_default.fs">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="pp_default.vs">
+    <None Include="resources\shaders\pp_default.vs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="resources\shaders\pp_flip.fs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="resources\shaders\sprite.fs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="resources\shaders\sprite.vs">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="resources\shaders\text.fs">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Font Include="OCRAEXT.TTF">
+    <Font Include="resources\fonts\OCRAEXT.TTF">
       <Filter>Resource Files\fonts</Filter>
     </Font>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="breakout.mp3">
-      <Filter>Resource Files\audio</Filter>
+    <Image Include="resources\images\abuse_punishment.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_anchor.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_explosion.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_leech.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_link.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_missile.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle_1.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle_2.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle_3.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle_4.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle_5.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle_6.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_paddle_7.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\alien_sticker.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\arrow_green.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\background.jpg">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\ball.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\black_color.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\black_punishment_box.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\blind_punishment.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\character.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\energy.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\flip_punishment.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\gravity_ball.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\green_color.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\gui_background.jpg">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\gui_background.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\inverse_punishment.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\life.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\light_blue_color.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\link.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\punishment_template.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\punishment_text_box.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\purple_color.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\red_color.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\repulsion_ball.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\shrink_punishment.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\slow_punishment.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\smoke.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_anchor.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_explosion.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_leech.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_link.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_missile.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_paddle.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_paddle_1.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_paddle_2.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_paddle_3.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_paddle_4.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\tech_sticker.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\trail_punishment.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+    <Image Include="resources\images\white_color.png">
+      <Filter>Resource Files\images</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="resources\sounds\leech_launch.mp3" />
+    <Media Include="resources\sounds\breakout.mp3">
+      <Filter>Resource Files\sounds</Filter>
     </Media>
+    <Media Include="resources\sounds\alien_bounce.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\alien_grapple_attach.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\alien_punished.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\ball_launch.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\grapple_attach.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\grapple_release.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\gravity_sound.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\leech_receive.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\leech_suck.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\life_lost.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\missile_thrustors.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\tech_bounce.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\tech_punished.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+    <Media Include="resources\sounds\wall_bounce.wav">
+      <Filter>Resource Files\sounds</Filter>
+    </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="includes\BallObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Explosion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\GameBall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\GameObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\GrappleAttack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\GravityBall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\GravityPong.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\LeechAttack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Missile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\PaddleObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\ParticleGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\player_selected.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\PostProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\ResourceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\RetroRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\SpriteRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\TextRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\BallObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Explosion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameBall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GrappleAttack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GravityBall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GravityPong.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LeechAttack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Missile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PaddleObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ParticleGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PostProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ResourceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RetroRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SpriteRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TextRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

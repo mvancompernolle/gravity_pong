@@ -39,8 +39,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Matt\Documents\OpenGL_libs\2015\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Matt\Documents\OpenGL_libs\2015\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)2015\include;$(ProjectDir)includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)2015\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -68,81 +68,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Image Include="abuse_punishment.png" />
-    <Image Include="arrow_green.png" />
-    <Image Include="background.jpg" />
-    <Image Include="black_color.png" />
-    <Image Include="character.png" />
-    <Image Include="energy.png" />
-    <Image Include="explosion.png" />
-    <Image Include="gravity_ball.png" />
-    <Image Include="green_color.png" />
-    <Image Include="gui_background.jpg" />
-    <Image Include="gui_background.png" />
-    <Image Include="gui_background_backup.png" />
-    <Image Include="leech.png" />
-    <Image Include="life.png" />
-    <Image Include="light_blue_color.png" />
-    <Image Include="anchor.png" />
-    <Image Include="link.png" />
-    <Image Include="l_side_punishment_panel.png" />
-    <Image Include="missile.png" />
-    <Image Include="paddle.png" />
-    <Image Include="punishment_template.png" />
-    <Image Include="purple_color.png" />
-    <Image Include="red_color.png" />
-    <Image Include="r_side_punishment_panel.png" />
-    <Image Include="side_punishment_panel.png" />
-    <Image Include="slow_punishment.png" />
-    <Image Include="smoke.png" />
-    <Image Include="white_color.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="BallObject.cpp" />
-    <ClCompile Include="Explosion.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GameBall.cpp" />
-    <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GrappleAttack.cpp" />
-    <ClCompile Include="GravityBall.cpp" />
-    <ClCompile Include="GravityPong.cpp" />
-    <ClCompile Include="LeechAttack.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Missile.cpp" />
-    <ClCompile Include="PaddleObject.cpp" />
-    <ClCompile Include="ParticleGenerator.cpp" />
-    <ClCompile Include="PostProcessor.cpp" />
-    <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="RetroRenderer.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="SpriteRenderer.cpp" />
-    <ClCompile Include="TextRenderer.cpp" />
-    <ClCompile Include="Texture.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="BallObject.h" />
-    <ClInclude Include="Explosion.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="GameBall.h" />
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GrappleAttack.h" />
-    <ClInclude Include="GravityBall.h" />
-    <ClInclude Include="GravityPong.h" />
-    <ClInclude Include="LeechAttack.h" />
-    <ClInclude Include="Missile.h" />
-    <ClInclude Include="PaddleObject.h" />
-    <ClInclude Include="ParticleGenerator.h" />
-    <ClInclude Include="player_selected.h" />
-    <ClInclude Include="PostProcessor.h" />
-    <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="RetroRenderer.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="SpriteRenderer.h" />
-    <ClInclude Include="TextRenderer.h" />
-    <ClInclude Include="Texture.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="pp_flip.fs" />
     <None Include="FreeImaged.dll" />
     <None Include="FreeImagePlusd.dll" />
     <None Include="glew32.dll" />
@@ -150,19 +75,135 @@
     <None Include="ikpFlac.dll" />
     <None Include="ikpMP3.dll" />
     <None Include="irrKlang.dll" />
-    <None Include="pp_blind.fs" />
-    <None Include="pp_default.fs" />
-    <None Include="pp_default.vs" />
-    <None Include="sprite.fs" />
-    <None Include="sprite.vs" />
-    <None Include="text.fs" />
-    <None Include="text.vs" />
+    <None Include="resources\shaders\pp_blind.fs" />
+    <None Include="resources\shaders\pp_default.fs" />
+    <None Include="resources\shaders\pp_default.vs" />
+    <None Include="resources\shaders\pp_flip.fs" />
+    <None Include="resources\shaders\sprite.fs" />
+    <None Include="resources\shaders\sprite.vs" />
+    <None Include="resources\shaders\text.fs" />
+    <None Include="resources\shaders\text.vs" />
+    <None Include="resources\sounds\explosion_sound.flac" />
   </ItemGroup>
   <ItemGroup>
-    <Font Include="OCRAEXT.TTF" />
+    <Font Include="resources\fonts\OCRAEXT.TTF" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="breakout.mp3" />
+    <Image Include="resources\images\abuse_punishment.png" />
+    <Image Include="resources\images\alien_anchor.png" />
+    <Image Include="resources\images\alien_explosion.png" />
+    <Image Include="resources\images\alien_leech.png" />
+    <Image Include="resources\images\alien_link.png" />
+    <Image Include="resources\images\alien_missile.png" />
+    <Image Include="resources\images\alien_paddle.png" />
+    <Image Include="resources\images\alien_paddle_1.png" />
+    <Image Include="resources\images\alien_paddle_2.png" />
+    <Image Include="resources\images\alien_paddle_3.png" />
+    <Image Include="resources\images\alien_paddle_4.png" />
+    <Image Include="resources\images\alien_paddle_5.png" />
+    <Image Include="resources\images\alien_paddle_6.png" />
+    <Image Include="resources\images\alien_paddle_7.png" />
+    <Image Include="resources\images\alien_sticker.png" />
+    <Image Include="resources\images\arrow_green.png" />
+    <Image Include="resources\images\background.jpg" />
+    <Image Include="resources\images\ball.png" />
+    <Image Include="resources\images\black_color.png" />
+    <Image Include="resources\images\black_punishment_box.png" />
+    <Image Include="resources\images\blind_punishment.png" />
+    <Image Include="resources\images\character.png" />
+    <Image Include="resources\images\energy.png" />
+    <Image Include="resources\images\flip_punishment.png" />
+    <Image Include="resources\images\gravity_ball.png" />
+    <Image Include="resources\images\green_color.png" />
+    <Image Include="resources\images\gui_background.jpg" />
+    <Image Include="resources\images\gui_background.png" />
+    <Image Include="resources\images\inverse_punishment.png" />
+    <Image Include="resources\images\life.png" />
+    <Image Include="resources\images\light_blue_color.png" />
+    <Image Include="resources\images\link.png" />
+    <Image Include="resources\images\punishment_template.png" />
+    <Image Include="resources\images\punishment_text_box.png" />
+    <Image Include="resources\images\purple_color.png" />
+    <Image Include="resources\images\red_color.png" />
+    <Image Include="resources\images\repulsion_ball.png" />
+    <Image Include="resources\images\shrink_punishment.png" />
+    <Image Include="resources\images\slow_punishment.png" />
+    <Image Include="resources\images\smoke.png" />
+    <Image Include="resources\images\tech_anchor.png" />
+    <Image Include="resources\images\tech_explosion.png" />
+    <Image Include="resources\images\tech_leech.png" />
+    <Image Include="resources\images\tech_link.png" />
+    <Image Include="resources\images\tech_missile.png" />
+    <Image Include="resources\images\tech_paddle.png" />
+    <Image Include="resources\images\tech_paddle_1.png" />
+    <Image Include="resources\images\tech_paddle_2.png" />
+    <Image Include="resources\images\tech_paddle_3.png" />
+    <Image Include="resources\images\tech_paddle_4.png" />
+    <Image Include="resources\images\tech_sticker.png" />
+    <Image Include="resources\images\trail_punishment.png" />
+    <Image Include="resources\images\white_color.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="resources\sounds\alien_bounce.wav" />
+    <Media Include="resources\sounds\alien_grapple_attach.wav" />
+    <Media Include="resources\sounds\alien_punished.wav" />
+    <Media Include="resources\sounds\ball_launch.wav" />
+    <Media Include="resources\sounds\breakout.mp3" />
+    <Media Include="resources\sounds\grapple_attach.wav" />
+    <Media Include="resources\sounds\grapple_release.wav" />
+    <Media Include="resources\sounds\gravity_sound.wav" />
+    <Media Include="resources\sounds\leech_launch.mp3" />
+    <Media Include="resources\sounds\leech_receive.wav" />
+    <Media Include="resources\sounds\leech_suck.wav" />
+    <Media Include="resources\sounds\life_lost.wav" />
+    <Media Include="resources\sounds\missile_thrustors.wav" />
+    <Media Include="resources\sounds\tech_bounce.wav" />
+    <Media Include="resources\sounds\tech_punished.wav" />
+    <Media Include="resources\sounds\wall_bounce.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="includes\BallObject.h" />
+    <ClInclude Include="includes\Explosion.h" />
+    <ClInclude Include="includes\Game.h" />
+    <ClInclude Include="includes\GameBall.h" />
+    <ClInclude Include="includes\GameObject.h" />
+    <ClInclude Include="includes\GrappleAttack.h" />
+    <ClInclude Include="includes\GravityBall.h" />
+    <ClInclude Include="includes\GravityPong.h" />
+    <ClInclude Include="includes\LeechAttack.h" />
+    <ClInclude Include="includes\Missile.h" />
+    <ClInclude Include="includes\PaddleObject.h" />
+    <ClInclude Include="includes\ParticleGenerator.h" />
+    <ClInclude Include="includes\player_selected.h" />
+    <ClInclude Include="includes\PostProcessor.h" />
+    <ClInclude Include="includes\ResourceManager.h" />
+    <ClInclude Include="includes\RetroRenderer.h" />
+    <ClInclude Include="includes\Shader.h" />
+    <ClInclude Include="includes\SpriteRenderer.h" />
+    <ClInclude Include="includes\TextRenderer.h" />
+    <ClInclude Include="includes\Texture.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\BallObject.cpp" />
+    <ClCompile Include="src\Explosion.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\GameBall.cpp" />
+    <ClCompile Include="src\GameObject.cpp" />
+    <ClCompile Include="src\GrappleAttack.cpp" />
+    <ClCompile Include="src\GravityBall.cpp" />
+    <ClCompile Include="src\GravityPong.cpp" />
+    <ClCompile Include="src\LeechAttack.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Missile.cpp" />
+    <ClCompile Include="src\PaddleObject.cpp" />
+    <ClCompile Include="src\ParticleGenerator.cpp" />
+    <ClCompile Include="src\PostProcessor.cpp" />
+    <ClCompile Include="src\ResourceManager.cpp" />
+    <ClCompile Include="src\RetroRenderer.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\SpriteRenderer.cpp" />
+    <ClCompile Include="src\TextRenderer.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
