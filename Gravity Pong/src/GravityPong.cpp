@@ -10,7 +10,7 @@ GravityPong::GravityPong( GLuint width, GLuint height )
 	: Game( width, height ), state( GAME_OVER ), p1Lives( NUM_LIVES ), p2Lives( NUM_LIVES ), heightRange( GUI_PERCENT * height, height ), p1BounceCooldown( 0.0f ), p2BounceCooldown( 0.0f ),
 	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
 	MISSILE_SIZE( height / 15.0f, height / 30.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), inRetroMode( GL_FALSE ),
-	LEECH_SPEED( width ), nextPowerUpCooldown( 3.0f ), POWERUP_RADIUS( ( GUI_PERCENT * height + height ) / 40.0f ) {
+	LEECH_SPEED( width ), nextPowerUpCooldown( 3.0f ), POWERUP_RADIUS( ( GUI_PERCENT * height + height ) / 40.0f ), currentMaxBallSpeed( START_MAX_BALL_SPEED ) {
 
 	init();
 }
@@ -135,8 +135,7 @@ void GravityPong::init() {
 	soundEngine->setSoundVolume( GAME_VOLUME );
 
 	// initialize player energy levels
-	p1Energy = 1000.0f;
-	p2Energy = 1000.0f;
+	p1Energy = p2Energy = STARTING_ENERGY;
 
 	// randomly select first punishment
 	int randomPunishment = rand() % NUM_PUNISHMENTS;
@@ -171,10 +170,10 @@ void GravityPong::processInput( const GLfloat dt ) {
 		if ( keys[GLFW_KEY_S] ) {
 			player1->move( PADDLE_DOWN );
 		}
-		if ( keys[GLFW_KEY_UP] ) {
+		if ( keys[GLFW_KEY_HOME] ) {
 			player2->move( PADDLE_UP );
 		}
-		if ( keys[GLFW_KEY_DOWN] ) {
+		if ( keys[GLFW_KEY_END] ) {
 			player2->move( PADDLE_DOWN );
 		}
 
@@ -196,7 +195,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 				p1ChargingGravBall->pos = glm::vec2( player1->size.x, player1->getCenter().y - p1ChargingGravBall->radius );
 			}
 		}
-		if ( keys[GLFW_KEY_LEFT] ) {
+		if ( keys[GLFW_KEY_DELETE] ) {
 			if ( p2ChargingGravBall == nullptr && p2Energy >= GRAV_BALL_COST ) {
 				Texture ballTex = ResourceManager::getTexture( "gravity_ball" );
 				p2ChargingGravBall = new GravityBall( glm::vec2( width - player2->size.x - GRAV_STARTING_RADIUS * 2.0f, player2->getCenter().y - GRAV_STARTING_RADIUS ), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f );
@@ -212,7 +211,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 			}
 		}
 		// used for repulsion balls
-		if (keys[GLFW_KEY_F]) {
+		if (keys[GLFW_KEY_E]) {
 			if (p1ChargingGravBall == nullptr && p1Energy >= GRAV_BALL_COST) {
 				Texture ballTex = ResourceManager::getTexture("repulsion_ball");
 				p1ChargingGravBall = new GravityBall(glm::vec2(player1->size.x, player1->getCenter().y - GRAV_STARTING_RADIUS), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f);
@@ -229,7 +228,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 				p1ChargingGravBall->pos = glm::vec2(player1->size.x, player1->getCenter().y - p1ChargingGravBall->radius);
 			}
 		}
-		if (keys[GLFW_KEY_RIGHT_CONTROL]) {
+		if (keys[GLFW_KEY_INSERT]) {
 			if (p2ChargingGravBall == nullptr && p2Energy >= GRAV_BALL_COST) {
 				Texture ballTex = ResourceManager::getTexture("repulsion_ball");
 				p2ChargingGravBall = new GravityBall(glm::vec2(width - player2->size.x - GRAV_STARTING_RADIUS * 2.0f, player2->getCenter().y - GRAV_STARTING_RADIUS), GRAV_STARTING_RADIUS, ballTex, GRAV_BALL_COST * 0.5f);
@@ -254,7 +253,7 @@ void GravityPong::processInput( const GLfloat dt ) {
 				gravPtr->selectedBy = NO_ONE;
 			}
 		}
-		if (keys[GLFW_KEY_RIGHT]) {
+		if (keys[GLFW_KEY_PAGE_DOWN]) {
 			// set the selected gravityBall to collapse
 			GravityBall* gravPtr = findSelectedGravBall(P2_SELECTED);
 			if (gravPtr != nullptr) {
@@ -264,75 +263,102 @@ void GravityPong::processInput( const GLfloat dt ) {
 		}
 
 		// player 1 secondary moves (powerups)
-		if (keys[GLFW_KEY_E] && !keysProcessed[GLFW_KEY_E] && p1PowerUp.charges > 0) {
-			switch (p1PowerUp.type) {
-			case MISSILE:
-				if (p1Missile == nullptr && p1MissileCooldown <= 0.0f) {
+		if (keys[GLFW_KEY_Q] && !keysProcessed[GLFW_KEY_Q] ) {
+			if (p1PowerUp.charges > 0) {
+				switch (p1PowerUp.type) {
+				case MISSILE:
+					if (p1Missile == nullptr && p1MissileCooldown <= 0.0f) {
+						--p1PowerUp.charges;
+						p1Missile = new Missile(glm::vec2(player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f), MISSILE_SIZE, ResourceManager::getTexture("tech_missile"), ball, 0.0f, *soundEngine);
+						p1Missile->setBoundaries(0.0f, width, heightRange.x, heightRange.y);
+					}
+					else if (p1Missile != nullptr) {
+						causeMissileExplosion(*p1Missile);
+						deleteMissile(p1Missile);
+					}
+					break;
+				case LEECH:
 					--p1PowerUp.charges;
-					p1Missile = new Missile(glm::vec2(player1->pos.x + 1.5f * player1->size.x, player1->getCenter().y - MISSILE_SIZE.y / 2.0f), MISSILE_SIZE, ResourceManager::getTexture("tech_missile"), ball, 0.0f, *soundEngine);
-					p1Missile->setBoundaries(0.0f, width, heightRange.x, heightRange.y);
-				}
-				else if (p1Missile != nullptr) {
-					causeMissileExplosion(*p1Missile);
-					deleteMissile(p1Missile);
-				}
-				break;
-			case LEECH:
-				--p1PowerUp.charges;
-				leechAttacks.push_back(LeechAttack(glm::vec2(player1->pos.x + 1.5f * player1->size.x - LEECH_SIZE.x / 2.0f, player1->getCenter().y - LEECH_SIZE.x / 2.0f),
-					LEECH_SIZE, ResourceManager::getTexture("tech_leech"), glm::vec2(LEECH_SPEED, 0.0f), player2));
+					leechAttacks.push_back(LeechAttack(glm::vec2(player1->pos.x + 1.5f * player1->size.x - LEECH_SIZE.x / 2.0f, player1->getCenter().y - LEECH_SIZE.x / 2.0f),
+						LEECH_SIZE, ResourceManager::getTexture("tech_leech"), glm::vec2(LEECH_SPEED, 0.0f), player2));
 
-				// play leech launch sound
-				soundEngine->play2D("resources/sounds/leech_launch.mp3", GL_FALSE);
-				break;
-			case GRAPPLE:
-				--p1PowerUp.charges;
-				if (p1Grapple == nullptr) {
-					glm::vec2 pos = glm::vec2(player1->getCenter().x + player1->size.x / 2.0f - GRAPPLE_ANCHOR_RADIUS, player1->getCenter().y - GRAPPLE_ANCHOR_RADIUS);
-					p1Grapple = new GrappleAttack(player1, player2, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2(GRAPPLE_SPEED, 0.0f), width, GRAPPLE_DURATION);
-					p1Energy -= GRAPPLE_COST;
+					// play leech launch sound
+					soundEngine->play2D("resources/sounds/leech_launch.mp3", GL_FALSE);
+					break;
+				case GRAPPLE:
+					if (p1Grapple == nullptr) {
+						--p1PowerUp.charges;
+						glm::vec2 pos = glm::vec2(player1->getCenter().x + player1->size.x / 2.0f - GRAPPLE_ANCHOR_RADIUS, player1->getCenter().y - GRAPPLE_ANCHOR_RADIUS);
+						p1Grapple = new GrappleAttack(player1, player2, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2(GRAPPLE_SPEED, 0.0f), width, GRAPPLE_DURATION);
 
-					// play grapple sound
-					soundEngine->play2D("resources/sounds/grapple_release.wav", GL_FALSE);
+						// play grapple sound
+						soundEngine->play2D("resources/sounds/grapple_release.wav", GL_FALSE);
+					}
+					break;
 				}
-				break;
+				keysProcessed[GLFW_KEY_Q] = GL_TRUE;
 			}
-			keysProcessed[GLFW_KEY_E] = GL_TRUE;
+
+			if (!keysProcessed[GLFW_KEY_Q]) {
+				switch (p1PowerUp.type) {
+				case MISSILE:
+					if (p1Missile != nullptr) {
+						causeMissileExplosion(*p1Missile);
+						deleteMissile(p1Missile);
+					}
+					break;
+				}
+			}
+			
 		}
 		// player 2 secondary moves (powerups)
-		if (keys[GLFW_KEY_RIGHT_SHIFT] && !keysProcessed[GLFW_KEY_RIGHT_SHIFT] && p2PowerUp.charges > 0) {
-			switch (p2PowerUp.type) {
-			case MISSILE:
-				if (p2Missile == nullptr && p2MissileCooldown <= 0.0f) {
+		if (keys[GLFW_KEY_PAGE_UP] && !keysProcessed[GLFW_KEY_PAGE_UP] ) {
+			if (p2PowerUp.charges > 0) {
+				switch (p2PowerUp.type) {
+				case MISSILE:
+					if (p2Missile == nullptr && p2MissileCooldown <= 0.0f) {
+						--p2PowerUp.charges;
+						p2Missile = new Missile(glm::vec2(player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f), MISSILE_SIZE, ResourceManager::getTexture("alien_missile"), ball, 180.0f, *soundEngine, 180.0f);
+						p2Missile->setBoundaries(0.0f, width, heightRange.x, heightRange.y);
+					}
+					else if (p2Missile != nullptr) {
+						causeMissileExplosion(*p2Missile);
+						deleteMissile(p2Missile);
+					}
+					break;
+				case LEECH:
 					--p2PowerUp.charges;
-					p2Missile = new Missile(glm::vec2(player2->pos.x - 0.5f * player2->size.x - MISSILE_SIZE.x, player2->getCenter().y - MISSILE_SIZE.y / 2.0f), MISSILE_SIZE, ResourceManager::getTexture("alien_missile"), ball, 180.0f, *soundEngine, 180.0f);
-					p2Missile->setBoundaries(0.0f, width, heightRange.x, heightRange.y);
-				}
-				else if (p2Missile != nullptr) {
-					causeMissileExplosion(*p2Missile);
-					deleteMissile(p2Missile);
-				}
-				break;
-			case LEECH:
-				--p2PowerUp.charges;
-				leechAttacks.push_back(LeechAttack(glm::vec2(player2->pos.x - 0.5f * player2->size.x - LEECH_SIZE.x / 2.0f, player2->getCenter().y - LEECH_SIZE.x / 2.0f),
-					LEECH_SIZE, ResourceManager::getTexture("alien_leech"), glm::vec2(-LEECH_SPEED, 0.0f), player1));
+					leechAttacks.push_back(LeechAttack(glm::vec2(player2->pos.x - 0.5f * player2->size.x - LEECH_SIZE.x / 2.0f, player2->getCenter().y - LEECH_SIZE.x / 2.0f),
+						LEECH_SIZE, ResourceManager::getTexture("alien_leech"), glm::vec2(-LEECH_SPEED, 0.0f), player1));
 
-				// play leech launch sound
-				soundEngine->play2D("resources/sounds/leech_launch.mp3", GL_FALSE);
-				break;
-			case GRAPPLE:
-				--p2PowerUp.charges;
-				if (p1Grapple == nullptr) {
-					glm::vec2 pos = glm::vec2(player2->pos.x - GRAPPLE_ANCHOR_RADIUS, player2->getCenter().y - GRAPPLE_ANCHOR_RADIUS);
-					p2Grapple = new GrappleAttack(player2, player1, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2(-GRAPPLE_SPEED, 0.0f), width, GRAPPLE_DURATION);
+					// play leech launch sound
+					soundEngine->play2D("resources/sounds/leech_launch.mp3", GL_FALSE);
+					break;
+				case GRAPPLE:
+					if (p1Grapple == nullptr) {
+						--p2PowerUp.charges;
+						glm::vec2 pos = glm::vec2(player2->pos.x - GRAPPLE_ANCHOR_RADIUS, player2->getCenter().y - GRAPPLE_ANCHOR_RADIUS);
+						p2Grapple = new GrappleAttack(player2, player1, pos, GRAPPLE_ANCHOR_RADIUS, glm::vec2(-GRAPPLE_SPEED, 0.0f), width, GRAPPLE_DURATION);
 
-					// play grapple sound
-					soundEngine->play2D("resources/sounds/grapple_release.wav", GL_FALSE);
+						// play grapple sound
+						soundEngine->play2D("resources/sounds/grapple_release.wav", GL_FALSE);
+					}
+					break;
 				}
-				break;
+				keysProcessed[GLFW_KEY_PAGE_UP] = GL_TRUE;
 			}
-			keysProcessed[GLFW_KEY_RIGHT_SHIFT] = GL_TRUE;
+
+			if (!keysProcessed[GLFW_KEY_PAGE_UP]) {
+				switch (p2PowerUp.type) {
+				case MISSILE:
+					if (p2Missile != nullptr) {
+						causeMissileExplosion(*p2Missile);
+						deleteMissile(p2Missile);
+					}
+					break;
+				}
+			}
+
 		}
 
 	} else if ( state == GAME_OVER ) {
@@ -427,17 +453,35 @@ void GravityPong::update( const GLfloat dt ) {
 				glm::vec2 ballPos = glm::vec2( width / 2.0f - ball->radius, ( heightRange.y + heightRange.x ) / 2.0f - ball->radius );
 				ball->reset( ballPos, glm::vec2( 0.0f ) );
 				clearPunishment();
+				currentMaxBallSpeed = START_MAX_BALL_SPEED;
 				ball->startLaunch();
 			}
 		}
 
 		// if ball is going too slow, launch it
 		GLfloat speed = glm::length( ball->vel );
-		if ( !( punishment.type == ABUSE && punishment.charges > 0 ) && !ball->isLaunching && ( std::abs( ball->vel.x ) < MIN_BALL_SPEED_X ) ) {
-			ball->startLaunch();
-		} else if ( speed > MAX_BALL_SPEED ) {
+		std::cout << "speed: " << speed << std::endl;
+		if (!(punishment.type == ABUSE && punishment.charges > 0) && !ball->isLaunching) {
+			if (std::abs(ball->vel.x) < MIN_BALL_SPEED_X) {
+				slowTimeTillLaunch -= dt;
+				if (slowTimeTillLaunch <= 0) {
+					slowTimeTillLaunch = BALL_LAUNCH_THRESHOLD;
+					ball->startLaunch();
+				}
+			}
+			else {
+				slowTimeTillLaunch = BALL_LAUNCH_THRESHOLD;
+			}
+		}
+		if ( speed > currentMaxBallSpeed ) {
 			// if ball is going to fast slow it down
-			ball->vel = glm::vec2( glm::normalize( ball->vel ) * MAX_BALL_SPEED );
+			ball->vel = glm::vec2( glm::normalize( ball->vel ) * currentMaxBallSpeed );
+		}
+
+		// speed up max ball speed
+		if (currentMaxBallSpeed < END_MAX_BALL_SPEED) {
+			std::cout << "max: " << currentMaxBallSpeed << std::endl;
+			currentMaxBallSpeed += BALL_MAX_SPEED_INCREASE_RATE * dt;
 		}
 	}
 }
@@ -758,7 +802,6 @@ void GravityPong::handleCollisions() {
 		} else if ( std::get<0>( checkBallRectCollision( powerUp.object, *player2 ) ) ) {
 			// player 2 got power up
 			powerUp.object.isDestroyed = GL_TRUE;
-			p2PowerUp = powerUp;
 			if (p2PowerUp.type == powerUp.type) {
 				p2PowerUp.charges += powerUp.charges;
 			}
@@ -960,6 +1003,8 @@ void GravityPong::resetGame() {
 	// reset ball
 	ball->reset( glm::vec2( width / 2.0f - ball->radius, ( heightRange.y + heightRange.x ) / 2.0f - ball->radius ), glm::vec2( 0.0f ) );
 	ball->startLaunch();
+	currentMaxBallSpeed = START_MAX_BALL_SPEED;
+	slowTimeTillLaunch = BALL_LAUNCH_THRESHOLD;
 
 	// reset paddles
 	player1->speed = player2->speed = PADDLE_SPEED;
@@ -968,7 +1013,7 @@ void GravityPong::resetGame() {
 	player1->reset( playerPos );
 	playerPos = glm::vec2( width - PADDLE_SIZE.x, ( heightRange.y + heightRange.x ) / 2.0f - PADDLE_SIZE.y / 2.0f );
 	player2->reset( playerPos );
-	p1Energy = p2Energy = 1000.0f;
+	p1Energy = p2Energy = STARTING_ENERGY;
 	p1Lives = NUM_LIVES;
 	p2Lives = NUM_LIVES;
 
@@ -991,7 +1036,7 @@ void GravityPong::resetGame() {
 	if ( p2Missile != nullptr ) {
 		delete p2Missile;
 		p2Missile = nullptr;
-	}
+	} 
 
 	// clear leeches
 	leechAttacks.clear();
@@ -1008,6 +1053,8 @@ void GravityPong::resetGame() {
 
 	// clear power ups
 	powerUps.clear();
+	p1PowerUp = PowerUp();
+	p2PowerUp = PowerUp();
 	nextPowerUpCooldown = MIN_POWERUP_TIME + ( rand() % ( MAX_POWERUP_TIME - MIN_POWERUP_TIME ) );
 
 	// reset punishment
@@ -1046,7 +1093,7 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 		}
 
 		p1ChargingGravBall->update( dt, heightRange );
-		if ( ( !keys[GLFW_KEY_D] && !p1ChargingGravBall->isReversed ) || (!keys[GLFW_KEY_F] && p1ChargingGravBall->isReversed)) {
+		if ( ( !keys[GLFW_KEY_D] && !p1ChargingGravBall->isReversed ) || (!keys[GLFW_KEY_E] && p1ChargingGravBall->isReversed)) {
 			unselectGravBall( P1_SELECTED );
 
 			// launch the gravity ball
@@ -1068,7 +1115,7 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 		}
 
 		p2ChargingGravBall->update( dt, heightRange );
-		if ((!keys[GLFW_KEY_LEFT] && !p2ChargingGravBall->isReversed) || (!keys[GLFW_KEY_RIGHT_CONTROL] && p2ChargingGravBall->isReversed)) {
+		if ((!keys[GLFW_KEY_DELETE] && !p2ChargingGravBall->isReversed) || (!keys[GLFW_KEY_INSERT] && p2ChargingGravBall->isReversed)) {
 			unselectGravBall( P2_SELECTED );
 
 			// launch the gravity ball
@@ -1250,11 +1297,19 @@ void GravityPong::renderGUI() const {
 	// render powerups
 	if (p1PowerUp.charges > 0) {
 		glm::vec2 pos = glm::vec2(0.02f * 0.15f * width, (0.245f * heightRange.x) * 1.1f);
-		spriteRenderer->drawSprite(ResourceManager::getTexture("leech_powerup_icon"), pos, punishmentSize, 0.0f, glm::vec4(1.0f));
+		spriteRenderer->drawSprite(p1PowerUp.object.sprite, pos, punishmentSize, 0.0f, glm::vec4(1.0f));
+		ss.str(std::string());
+		ss << p1PowerUp.charges;
+		glm::vec2 textPos = glm::vec2( punishmentSize.x / 10.0f, pos.y + punishmentSize.y * 0.7f);
+		textRenderer->renderText(ss.str(), textPos.x, textPos.y, (punishmentSize.y * 0.2f) / 16.0f, glm::vec3(1.0f));
 	}
 	if (p2PowerUp.charges > 0) {
 		glm::vec2 pos = glm::vec2(width - (0.02f * 0.15f * width) - punishmentSize.x, (0.245f * heightRange.x) * 1.1f);
-		spriteRenderer->drawSprite(ResourceManager::getTexture("leech_powerup_icon"), pos, punishmentSize, 0.0f, glm::vec4(1.0f), GL_FALSE);
+		spriteRenderer->drawSprite(p2PowerUp.object.sprite, pos, punishmentSize, 0.0f, glm::vec4(1.0f), GL_FALSE);
+		ss.str(std::string());
+		ss << p2PowerUp.charges;
+		glm::vec2 textPos = glm::vec2(width - punishmentSize.x / 10.0f, pos.y + punishmentSize.y * 0.7f);
+		textRenderer->renderText(ss.str(), textPos.x, textPos.y, (punishmentSize.y * 0.2f) / 16.0f, glm::vec3(1.0f), RIGHT_ALIGNED);
 	}
 
 	if ( state == GAME_OVER ) {
@@ -1349,13 +1404,13 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 	if ( p2MissileCooldown > 0.0f ) {
 		p2MissileCooldown -= dt;
 	}
-	if ( nextPowerUpCooldown > 0.0f ) {
+	if ( nextPowerUpCooldown > 0.0f && powerUps.size() < MAX_NUM_POWERUPS ) {
 		nextPowerUpCooldown -= dt;
 		// apply punishment if cooldown reaches 0
 		if ( nextPowerUpCooldown <= 0.0f ) {
 			nextPowerUpCooldown = MIN_POWERUP_TIME + ( rand() % ( MAX_POWERUP_TIME - MIN_POWERUP_TIME ) );
 			POWERUP_TYPE randomPower = (POWERUP_TYPE)( rand() % NUM_POWERUPS );
-			glm::vec2 pos( width / 2.0f - POWERUP_RADIUS, heightRange.x + ( rand() % (int)( ( heightRange.y - heightRange.x - POWERUP_RADIUS) ) ) );
+			glm::vec2 pos( width / 2.0f - POWERUP_RADIUS, heightRange.x + ( rand() % (int)( ( heightRange.y - heightRange.x - POWERUP_RADIUS * 2.0f) ) ) );
 			powerUps.push_back( PowerUp( randomPower, POWERUP_RADIUS, pos ) );
 		}
 	}

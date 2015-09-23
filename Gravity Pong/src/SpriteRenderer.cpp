@@ -11,7 +11,7 @@ SpriteRenderer::~SpriteRenderer() {
 	glDeleteVertexArrays(1, &VAO);
 }
 
-void SpriteRenderer::drawSprite( Texture& texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec4 color, GLboolean flipY ) {
+void SpriteRenderer::drawSprite( const Texture& texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec4 color, GLboolean flipY ) {
 	shader.use();
 	glm::mat4 model;
 
@@ -41,7 +41,7 @@ void SpriteRenderer::drawSprite( Texture& texture, glm::vec2 position, glm::vec2
 	glBindVertexArray(0);
 }
 
-void SpriteRenderer::drawSprite( Texture& texture, glm::mat4 model, glm::vec4 color ) {
+void SpriteRenderer::drawSprite( const Texture& texture, glm::mat4 model, glm::vec4 color ) {
 	shader.use();
 	shader.setMatrix4( "model", model );
 	shader.setVector4f( "spriteColor", color );

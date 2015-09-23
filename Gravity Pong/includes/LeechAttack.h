@@ -21,7 +21,7 @@ public:
 	irrklang::ISound*	suckingSound;
 
 
-						LeechAttack( glm::vec2 pos, glm::vec2 size, Texture sprite, glm::vec2 dir, GameObject* target, GLfloat leechAmount = 300.0f, GLfloat duration = 8.0f );
+						LeechAttack( glm::vec2 pos, glm::vec2 size, Texture sprite, glm::vec2 dir, GameObject* target, GLfloat leechAmount = 200.0f, GLfloat duration = 8.0f );
 						~LeechAttack();
 	void				update( const GLfloat dt );
 	void				attachLeech();

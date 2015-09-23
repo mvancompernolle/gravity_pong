@@ -81,7 +81,7 @@ struct PowerUp {
 			break;
 		case LEECH:
 			object = BallObject( pos, radius, ResourceManager::getTexture( "leech_powerup" ) );
-			charges = 5;
+			charges = 3;
 			break;
 		case GRAPPLE:
 			object = BallObject( pos, radius, ResourceManager::getTexture( "grapple_powerup" ) );
@@ -89,6 +89,7 @@ struct PowerUp {
 			break;
 		}
 		object.mass = 5.0f;
+		object.color = glm::vec4(glm::vec3(1.0f), 0.5f);
 	}
 
 	void update( GLfloat dt ) {
@@ -197,17 +198,18 @@ private:
 	// ball constants
 	const GLfloat DEFAULT_BALL_SPEED = 1000.0f;
 	const GLfloat MAX_HIT_ANGLE = 70.0f;
-	//const GLfloat MIN_BALL_SPEED = 300.0f;
-	const GLfloat MIN_BALL_SPEED_X = 100.0f;
-	const GLfloat MAX_BALL_SPEED = 1200.0f;
+	const GLfloat MIN_BALL_SPEED_X = 200.0f;
+	const GLfloat END_MAX_BALL_SPEED = 1400.0f;
+	const GLfloat START_MAX_BALL_SPEED = 1000.0f;
+	const GLfloat BALL_MAX_SPEED_INCREASE_RATE = 10;
+	const GLfloat BALL_LAUNCH_THRESHOLD = 0.5f;
 
 	// gravity  ball
 	const GLfloat GRAV_STARTING_RADIUS = 20.0f;
-	const GLuint GRAV_BALL_COST = 150;
+	const GLuint GRAV_BALL_COST = 100;
 
 	// missile
 	const GLuint MISSILE_COOLDOWN = 1.0f;
-	const GLuint MISSILE_COST = 300;
 	const GLuint MISSILE_POWER = 2000;
 	const GLfloat EXPLOSION_TIME = 0.5f;
 	const GLfloat EXPLOSION_RADIUS = 200.0f;
@@ -217,22 +219,21 @@ private:
 	// leech
 	const glm::vec2 LEECH_SIZE = glm::vec2(40.0f, 20.0f);
 	const GLfloat LEECH_SPEED;
-	const GLuint LEECH_COST = 150.0f;
 
 	// grapple
 	const GLfloat GRAPPLE_ANCHOR_RADIUS = 20.0f;
 	const GLfloat GRAPPLE_LINK_WIDTH = 10.0f;
-	const GLfloat GRAPPLE_SPEED = 1500.0f;
-	const GLfloat GRAPPLE_COST = 350.0f;
+	const GLfloat GRAPPLE_SPEED = 2000.0f;
 	const GLfloat GRAPPLE_DURATION = 3.0f;
 	const GLfloat GRAPPLE_PULL_STRENGTH = 10.0f;
 
 	// player
-	const GLuint ENERGY_PER_SECOND = 20;
+	const GLuint ENERGY_PER_SECOND = 10;
 	const GLuint NUM_LIVES = 5;
-	const GLuint ENERGY_PER_BOUNCE = 100;
+	const GLuint ENERGY_PER_BOUNCE = 50;
 	const GLfloat BOUNCE_COOLDOWN_TIME = 0.25f;
 	const GLfloat PADDLE_SPEED;
+	const GLfloat STARTING_ENERGY = 500.0f;
 	const glm::vec2 PADDLE_SIZE;
 
 	// punishments
@@ -243,6 +244,7 @@ private:
 	// power ups
 	const GLuint		MIN_POWERUP_TIME = 10;
 	const GLuint		MAX_POWERUP_TIME = 15;
+	const GLuint		MAX_NUM_POWERUPS = 2;
 	const GLfloat		POWERUP_RADIUS;
 
 	GLboolean					inRetroMode;
@@ -270,6 +272,7 @@ private:
 	Punishment					punishment;
 	std::list<PowerUp>			powerUps;
 	PowerUp						p1PowerUp, p2PowerUp;
+	GLfloat						slowTimeTillLaunch, currentMaxBallSpeed;
 
 	// sounds
 	irrklang::ISoundEngine*		soundEngine;

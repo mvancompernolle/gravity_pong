@@ -1,45 +1,6 @@
-﻿Build started 9/22/2015 5:37:37 PM.
+﻿Build started 9/23/2015 12:33:21 PM.
      1>Project "C:\Users\matthew.vancompernol\Documents\Visual Studio 2015\Projects\gravity_pong\Gravity Pong\Gravity Pong.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt src\GravityPong.cpp
-         GravityPong.cpp
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gameball.h(16): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\missile.h(23): warning C4373: 'Missile::update': virtual function overrides 'GameObject::update', previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
-         c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gameobject.h(28): note: see declaration of 'GameObject::update'
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\leechattack.h(26): warning C4373: 'LeechAttack::update': virtual function overrides 'GameObject::update', previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
-         c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gameobject.h(28): note: see declaration of 'GameObject::update'
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\explosion.h(14): warning C4373: 'Explosion::update': virtual function overrides 'GameObject::update', previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
-         c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gameobject.h(28): note: see declaration of 'GameObject::update'
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gravitypong.h(209): warning C4244: 'initializing': conversion from 'float' to 'const GLuint', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gravitypong.h(220): warning C4244: 'initializing': conversion from 'float' to 'const GLuint', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gravitypong.h(240): warning C4305: 'initializing': truncation from 'double' to 'const GLfloat'
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(7): warning C4305: 'initializing': truncation from 'double' to 'float'
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(13): warning C4244: 'initializing': conversion from 'GLuint' to 'const GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(120): warning C4244: 'initializing': conversion from 'float' to 'GLuint', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(122): warning C4244: 'argument': conversion from 'GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(273): warning C4244: 'argument': conversion from 'GLuint' to 'const GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(309): warning C4244: 'argument': conversion from 'GLuint' to 'const GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(536): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(612): warning C4244: 'argument': conversion from 'const GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(628): warning C4244: 'argument': conversion from 'const GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1011): warning C4244: '=': conversion from 'GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1114): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1144): warning C4018: '<': signed/unsigned mismatch
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1148): warning C4018: '<': signed/unsigned mismatch
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1196): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1217): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1222): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1244): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1285): warning C4244: 'initializing': conversion from 'double' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1287): warning C4018: '<': signed/unsigned mismatch
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1356): warning C4244: '=': conversion from 'GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1372): warning C4018: '>=': signed/unsigned mismatch
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1550): warning C4244: '=': conversion from 'const GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1552): warning C4244: '=': conversion from 'const GLuint' to 'GLfloat', possible loss of data
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1570): warning C4018: '<': signed/unsigned mismatch
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\src\gravitypong.cpp(1336): warning C4715: 'GravityPong::findSelectedGravBall': not all control paths return a value
-     1>c:\users\matthew.vancompernol\documents\visual studio 2015\projects\gravity_pong\gravity pong\includes\gravitypong.h(179): warning C4715: 'Punishment::getPunishmentName': not all control paths return a value
-       Link:
+     1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\matthew.vancompernol\Documents\Visual Studio 2015\Projects\gravity_pong\Debug\Gravity Pong.exe" /INCREMENTAL /NOLOGO opengl32.lib FreeImaged.lib FreeImagePlusd.lib freetyped.lib glew32d.lib glfw3.lib irrKlang.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\matthew.vancompernol\Documents\Visual Studio 2015\Projects\gravity_pong\Debug\Gravity Pong.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\matthew.vancompernol\Documents\Visual Studio 2015\Projects\gravity_pong\Debug\Gravity Pong.lib" /MACHINE:X86 Debug\BallObject.obj
          Debug\Explosion.obj
          Debug\Game.obj
@@ -65,4 +26,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.23
+Time Elapsed 00:00:00.28
