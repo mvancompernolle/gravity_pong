@@ -76,16 +76,16 @@ struct PowerUp {
 		this->type = type;
 		switch (type) {
 		case MISSILE:
-			object = BallObject( pos, radius, ResourceManager::getTexture( "alien_missile" ) );
+			object = BallObject( pos, radius, ResourceManager::getTexture( "missile_powerup" ) );
 			charges = 3;
 			break;
 		case LEECH:
-			object = BallObject( pos, radius, ResourceManager::getTexture( "alien_leech" ) );
-			charges = 3;
+			object = BallObject( pos, radius, ResourceManager::getTexture( "leech_powerup" ) );
+			charges = 5;
 			break;
 		case GRAPPLE:
-			object = BallObject( pos, radius, ResourceManager::getTexture( "alien_sticker" ) );
-			charges = 1;
+			object = BallObject( pos, radius, ResourceManager::getTexture( "grapple_powerup" ) );
+			charges = 2;
 			break;
 		}
 		object.mass = 5.0f;
@@ -268,9 +268,8 @@ private:
 	GLfloat						nextPunishmentCountdown, nextPowerUpCooldown;
 	PUNISHMENT_TYPE				nextPunishmentType;
 	Punishment					punishment;
-	GLboolean					p1IsGravReversed, p2IsGravReversed;
 	std::list<PowerUp>			powerUps;
-	PowerUp						secondaryType;
+	PowerUp						p1PowerUp, p2PowerUp;
 
 	// sounds
 	irrklang::ISoundEngine*		soundEngine;
