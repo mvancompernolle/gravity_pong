@@ -110,11 +110,13 @@ void PostProcessor::initRenderData() {
 	glBindVertexArray( 0 );
 }
 
-void PostProcessor::blindPlayer( const GameObject& player, GLfloat blindRange, glm::vec2 heightRange ) {
+void PostProcessor::blindPlayer( const GameObject& player, GLfloat blindRange, glm::vec2 heightRange, glm::vec2 widthRange, GLfloat fadeInLine ) {
 	clearEffects();
 	blind = GL_TRUE;
 	blindedPlayer = &player;
 	blindShader.use();
+	blindShader.setFloat( "fadeInLine", fadeInLine );
+	blindShader.setVector2f( "widthRange", widthRange );
 	blindShader.setVector2f( "heightRange", heightRange - heightRange.x );
 	blindShader.setFloat( "visionRadius", blindRange );
 }

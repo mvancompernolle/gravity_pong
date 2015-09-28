@@ -8,9 +8,9 @@ const float PI = 3.14159265358;
 
 GravityPong::GravityPong( GLuint width, GLuint height )
 	: Game( width, height ), state( GAME_OVER ), p1Lives( NUM_LIVES ), p2Lives( NUM_LIVES ), heightRange( GUI_PERCENT * height, height ), p1BounceCooldown( 0.0f ), p2BounceCooldown( 0.0f ),
-	nextPunishmentCountdown( PUNISHMENT_COUNTDOWN ), GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
+	GRAV_STARTING_RADIUS( height / 50.0f ), PADDLE_SPEED( ( height ) ), PADDLE_SIZE( width / 50.0f, height * ( 7.0f / 8.0f ) / 6.0f ),
 	MISSILE_SIZE( height / 15.0f, height / 30.0f ), p1MissileCooldown( 0.0f ), p2MissileCooldown( 0.0f ), inRetroMode( GL_FALSE ),
-	LEECH_SPEED( width ), nextPowerUpCooldown( 3.0f ), POWERUP_RADIUS( ( GUI_PERCENT * height + height ) / 40.0f ), currentMaxBallSpeed( START_MAX_BALL_SPEED ) {
+	LEECH_SPEED( width ), POWERUP_RADIUS( ( GUI_PERCENT * height + height ) / 40.0f ), currentMaxBallSpeed( START_MAX_BALL_SPEED ) {
 
 	init();
 }
@@ -92,6 +92,9 @@ void GravityPong::init() {
 	ResourceManager::loadTexture( "resources/images/black_punishment_box.png", GL_TRUE, "black_punishment_box" );
 	ResourceManager::loadTexture( "resources/images/punishment_text_box.png", GL_TRUE, "punishment_text_box" );
 	ResourceManager::loadTexture( "resources/images/punishment_template.png", GL_TRUE, "punishment_template" );
+	ResourceManager::loadTexture( "resources/images/item_overlay.png", GL_TRUE, "item_overlay" );
+	ResourceManager::loadTexture( "resources/images/ability_box.png", GL_TRUE, "ability_box" );
+	ResourceManager::loadTexture( "resources/images/punishment_box.png", GL_TRUE, "punishment_box" );
 
 	// load punishment icons
 	ResourceManager::loadTexture( "resources/images/slow_punishment.png", GL_TRUE, "slow_punishment" );
@@ -133,13 +136,6 @@ void GravityPong::init() {
 	soundEngine = irrklang::createIrrKlangDevice();
 	soundEngine->play2D( "resources/sounds/breakout.mp3", GL_TRUE );
 	soundEngine->setSoundVolume( GAME_VOLUME );
-
-	// initialize player energy levels
-	p1Energy = p2Energy = STARTING_ENERGY;
-
-	// randomly select first punishment
-	int randomPunishment = rand() % NUM_PUNISHMENTS;
-	nextPunishmentType = (PUNISHMENT_TYPE)randomPunishment;
 }
 
 void GravityPong::processInput( const GLfloat dt ) {
@@ -424,10 +420,18 @@ void GravityPong::update( const GLfloat dt ) {
 			leech.update( dt );
 		}
 
-		// update powerups
-		for ( PowerUp& powerUp : powerUps ) {
-			powerUp.update( dt );
+		// update spawned abilites
+		for ( Ability& ability : spawnedAbilities ) {
+			ability.update( dt );
 		}
+		// update spawned punishments
+		for ( Punishment& punishment : spawnedPunishments ) {
+			punishment.update( dt );
+		}
+
+		// update active punishments
+		updatePunishment( dt, p1Punishment );
+		updatePunishment( dt, p2Punishment );
 
 		// check for collisions between most objects
 		handleCollisions();
@@ -452,7 +456,8 @@ void GravityPong::update( const GLfloat dt ) {
 				// if life is lost but game is not over, reset ball position and clear current punishment
 				glm::vec2 ballPos = glm::vec2( width / 2.0f - ball->radius, ( heightRange.y + heightRange.x ) / 2.0f - ball->radius );
 				ball->reset( ballPos, glm::vec2( 0.0f ) );
-				clearPunishment();
+				clearPunishment( p1Punishment );
+				clearPunishment( p2Punishment );
 				currentMaxBallSpeed = START_MAX_BALL_SPEED;
 				ball->startLaunch();
 			}
@@ -460,8 +465,7 @@ void GravityPong::update( const GLfloat dt ) {
 
 		// if ball is going too slow, launch it
 		GLfloat speed = glm::length( ball->vel );
-		std::cout << "speed: " << speed << std::endl;
-		if (!(punishment.type == ABUSE && punishment.charges > 0) && !ball->isLaunching) {
+		if (!(p1Punishment.type == ABUSE && p1Punishment.charges > 0) && !( p2Punishment.type == ABUSE && p2Punishment.charges > 0 ) && !ball->isLaunching) {
 			if (std::abs(ball->vel.x) < MIN_BALL_SPEED_X) {
 				slowTimeTillLaunch -= dt;
 				if (slowTimeTillLaunch <= 0) {
@@ -480,7 +484,6 @@ void GravityPong::update( const GLfloat dt ) {
 
 		// speed up max ball speed
 		if (currentMaxBallSpeed < END_MAX_BALL_SPEED) {
-			std::cout << "max: " << currentMaxBallSpeed << std::endl;
 			currentMaxBallSpeed += BALL_MAX_SPEED_INCREASE_RATE * dt;
 		}
 	}
@@ -566,9 +569,12 @@ void GravityPong::renderNormal() {
 		explosion.draw( *spriteRenderer );
 	}
 
-	// render powerups
-	for ( PowerUp& powerUp : powerUps ) {
-		powerUp.draw( *spriteRenderer );
+	// render spawned abilities
+	for ( Ability& ability : spawnedAbilities ) {
+		ability.draw( *spriteRenderer );
+	}
+	for ( Punishment& punishment : spawnedPunishments ) {
+		punishment.draw( *spriteRenderer );
 	}
 
 	// render gui
@@ -782,39 +788,65 @@ void GravityPong::handleCollisions() {
 		p2Grapple = nullptr;
 	}
 
-	// handle powerup collisions
-	for ( PowerUp& powerUp : powerUps ) {
+	// handle ability item collisions
+	for ( Ability& ability : spawnedAbilities ) {
 		// collisions with walls
-		if ( powerUp.object.pos.x <= -powerUp.object.size.x || powerUp.object.pos.x + powerUp.object.size.x >= width ) {
-			powerUp.object.isDestroyed = GL_TRUE;
+		if ( ability.object.pos.x <= -ability.object.size.x || ability.object.pos.x + ability.object.size.x >= width ) {
+			ability.object.isDestroyed = GL_TRUE;
 		}
-		else if ( powerUp.object.pos.y <= heightRange.x || powerUp.object.pos.y + powerUp.object.size.y >= heightRange.y ) {
-			powerUp.object.vel.y = -powerUp.object.vel.y;
-		} else if ( std::get<0>( checkBallRectCollision( powerUp.object, *player1 ) ) ) {
+		else if ( ability.object.pos.y <= heightRange.x || ability.object.pos.y + ability.object.size.y >= heightRange.y ) {
+			ability.object.vel.y = -ability.object.vel.y;
+		} else if ( std::get<0>( checkBallRectCollision( ability.object, *player1 ) ) ) {
 			// player 1 got power up
-			powerUp.object.isDestroyed = GL_TRUE;
-			if (p1PowerUp.type == powerUp.type) {
-				p1PowerUp.charges += powerUp.charges;
+			ability.object.isDestroyed = GL_TRUE;
+			if (p1PowerUp.type == ability.type) {
+				p1PowerUp.charges += ability.charges;
 			}
 			else {
-				p1PowerUp = powerUp;
+				p1PowerUp = ability;
 			}
-		} else if ( std::get<0>( checkBallRectCollision( powerUp.object, *player2 ) ) ) {
+		} else if ( std::get<0>( checkBallRectCollision( ability.object, *player2 ) ) ) {
 			// player 2 got power up
-			powerUp.object.isDestroyed = GL_TRUE;
-			if (p2PowerUp.type == powerUp.type) {
-				p2PowerUp.charges += powerUp.charges;
+			ability.object.isDestroyed = GL_TRUE;
+			if (p2PowerUp.type == ability.type) {
+				p2PowerUp.charges += ability.charges;
 			}
 			else {
-				p2PowerUp = powerUp;
+				p2PowerUp = ability;
 			}
 		}
 	}
 
-	// delete dead leaches and ones that are out of bounds
-	powerUps.erase( std::remove_if( powerUps.begin(), powerUps.end(), [] ( const PowerUp& powerUp ) {
-		return powerUp.object.isDestroyed ;
-	} ), powerUps.end() );
+	// handle punishment item collisions
+	for ( Punishment& punishment : spawnedPunishments ) {
+		// collisions with walls
+		if ( punishment.object.pos.y <= heightRange.x || punishment.object.pos.y + punishment.object.size.y >= heightRange.y ) {
+			punishment.object.vel.y = -punishment.object.vel.y;
+		} 
+		// check for collision with player sides
+		if ( punishment.object.pos.x <= -punishment.object.size.x || std::get<0>( checkBallRectCollision( punishment.object, *player1 ) ) ) {
+			// player 1 got punished
+			punishment.object.isDestroyed = GL_TRUE;
+			punishment.paddle = player1;
+			punishment.player = P1_SELECTED;
+			punishPlayer( punishment );
+		} else if ( punishment.object.pos.x + punishment.object.size.x >= width || std::get<0>( checkBallRectCollision( punishment.object, *player2 ) ) ) {
+			// player 2 got punished
+			punishment.object.isDestroyed = GL_TRUE;
+			punishment.paddle = player2;
+			punishment.player = P2_SELECTED;
+			punishPlayer( punishment );
+		}
+	}
+
+	// delete destroyed ability items and ones that are out of bounds
+	spawnedAbilities.erase( std::remove_if( spawnedAbilities.begin(), spawnedAbilities.end(), [] ( const Ability& ability ) {
+		return ability.object.isDestroyed ;
+	} ), spawnedAbilities.end() );
+	// delete destroyed punishment items and ones that are out of bounds
+	spawnedPunishments.erase( std::remove_if( spawnedPunishments.begin(), spawnedPunishments.end(), [] ( const Punishment& punishment ) {
+		return punishment.object.isDestroyed;
+	} ), spawnedPunishments.end() );
 
 	// handle gravity ball player collisions
 	for ( GravityBall& gravBall : gravityBalls ) {
@@ -1051,14 +1083,18 @@ void GravityPong::resetGame() {
 		p2Grapple = nullptr;
 	}
 
-	// clear power ups
-	powerUps.clear();
-	p1PowerUp = PowerUp();
-	p2PowerUp = PowerUp();
-	nextPowerUpCooldown = MIN_POWERUP_TIME + ( rand() % ( MAX_POWERUP_TIME - MIN_POWERUP_TIME ) );
+	// clear spawned items
+	spawnedAbilities.clear();
+	p1PowerUp = Ability();
+	p2PowerUp = Ability();
+	spawnedPunishments.clear();
+	p1Punishment = Punishment();
+	p2Punishment = Punishment();
+	nextSpawnTime = MIN_POWERUP_TIME + ( rand() % ( MAX_POWERUP_TIME - MIN_POWERUP_TIME ) );
 
-	// reset punishment
-	clearPunishment();
+	// reset punishments
+	clearPunishment( p1Punishment );
+	clearPunishment( p2Punishment );
 
 	// stop all sounds
 	soundEngine->stopAllSounds();
@@ -1085,11 +1121,12 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 	// update gravity balls
 	if ( p1ChargingGravBall != nullptr ) {
 
-		// have any charging gravity ball pull in powerups
-		if ( !p1ChargingGravBall->isReversed ) {
-			for ( PowerUp& powerUp : powerUps ) {
-				p1ChargingGravBall->pullObject( dt, powerUp.object, *soundEngine );
-			}
+		// have any charging gravity effect abilities or punishments
+		for ( Ability& ability : spawnedAbilities ) {
+			p1ChargingGravBall->pullObject( dt, ability.object, *soundEngine );
+		}
+		for ( Punishment& punishment : spawnedPunishments ) {
+			p1ChargingGravBall->pullObject( dt, punishment.object, *soundEngine );
 		}
 
 		p1ChargingGravBall->update( dt, heightRange );
@@ -1107,11 +1144,12 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 	}
 	if ( p2ChargingGravBall != nullptr ) {
 
-		// have any charging gravity ball pull in powerups
-		if ( !p2ChargingGravBall->isReversed ) {
-			for ( PowerUp& powerUp : powerUps ) {
-				p2ChargingGravBall->pullObject( dt, powerUp.object, *soundEngine );
-			}
+		// have any charging gravity effect abilities or punishments
+		for ( Ability& ability : spawnedAbilities ) {
+			p2ChargingGravBall->pullObject( dt, ability.object, *soundEngine );
+		}
+		for ( Punishment& punishment : spawnedPunishments ) {
+			p2ChargingGravBall->pullObject( dt, punishment.object, *soundEngine );
 		}
 
 		p2ChargingGravBall->update( dt, heightRange );
@@ -1143,10 +1181,16 @@ void GravityPong::updateGravityBalls( const GLfloat dt ) {
 			gravBall.pullObject( dt, *p2Missile, *soundEngine );
 		}
 	}
-	// pull powerups
-	for ( PowerUp& powerUp : powerUps ) {
+	// pull abilities
+	for ( Ability& ability : spawnedAbilities ) {
 		for ( GravityBall& gravBall : gravityBalls ) {
-			gravBall.pullObject( dt, powerUp.object, *soundEngine );
+			gravBall.pullObject( dt, ability.object, *soundEngine );
+		}
+	}
+	// pull punishments
+	for ( Punishment& punishment : spawnedPunishments ) {
+		for ( GravityBall& gravBall : gravityBalls ) {
+			gravBall.pullObject( dt, punishment.object, *soundEngine );
 		}
 	}
 
@@ -1179,14 +1223,9 @@ void GravityPong::renderGUI() const {
 	ss << (GLuint)p2Energy;
 	textRenderer->renderText( ss.str(), pos2.x + size2.x - width * 0.01f, pos.y + size.y * 0.2f, ( size.y * 0.6f ) / 16.0f, glm::vec3( 0.0f ), RIGHT_ALIGNED );
 
-	// draw red punishment marker
-	glm::vec2 markerSize = glm::vec2( 4.0f, size.y );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "red" ), glm::vec2( pos.x + 0.25f * totalSize.x - markerSize.x / 2.0f, pos.y ), markerSize, 0.0f, glm::vec4( 0.5f ) );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "red" ), glm::vec2( pos.x + 0.75f * totalSize.x - markerSize.x / 2.0f, pos.y ), markerSize, 0.0f, glm::vec4( 0.5f ) );
-
 	// draw player lives
-	glm::vec2 p1Start = glm::vec2( 0.1f * 0.15f * width, 0.245f * 0.1f * heightRange.x );
-	glm::vec2 lifeSize = glm::vec2( ( 0.245f * 0.8 * heightRange.x ) / 2.0f, 0.245f * 0.8 * heightRange.x );
+	glm::vec2 lifeSize = glm::vec2( ( 0.9 * ( heightRange.x / 6.0f ) ) / 2.0f, 0.8 * ( heightRange.x / 6.0f ) );
+	glm::vec2 p1Start = glm::vec2( 0.1f * 0.15f * width, ( heightRange.x / 6.0f ) + 0.1f * lifeSize.y );
 	GLfloat xLifeOffset = ( ( 0.8f * 0.15f * width ) - ( lifeSize.x * NUM_LIVES ) ) / ( NUM_LIVES - 1 );
 	for ( int i = 0; i < p1Lives; ++i, p1Start.x += ( lifeSize.x + xLifeOffset ) ) {
 		spriteRenderer->drawSprite( ResourceManager::getTexture( "life" ), p1Start, lifeSize, 0.0f );
@@ -1196,121 +1235,12 @@ void GravityPong::renderGUI() const {
 		spriteRenderer->drawSprite( ResourceManager::getTexture( "life" ), p2Start, lifeSize, 0.0f );
 	}
 
-	// draw punishment panels
-	glm::vec2 leftPos = glm::vec2( offsetX, heightRange.x / 3.0f + ( heightRange.x * ( 2.0f / 3.0f ) * 0.05f ) );
-	glm::vec2 pBoxSize = glm::vec2( ( 0.7f * 0.25f * width ) / 3.0f, 0.9f * heightRange.x * ( 2.0f / 3.0f ) );
-	glm::vec2 textBoxSize = glm::vec2( pBoxSize.x * 2.0f, pBoxSize.y );
-	glm::vec2 rightPos = glm::vec2( ( width - offsetX ) - pBoxSize.x, heightRange.x / 3.0f + ( heightRange.x * ( 2.0f / 3.0f ) * 0.05f ) );
-	glm::vec2 leftTextPos = glm::vec2( leftPos.x + pBoxSize.x + 0.02 * pBoxSize.x, leftPos.y );
-	glm::vec2 rightTextPos = glm::vec2( rightPos.x - textBoxSize.x - 0.02 * pBoxSize.x, leftPos.y );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_text_box" ), leftTextPos, textBoxSize, 0.0f );
-	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_text_box" ), rightTextPos, textBoxSize, 0.0f );
+	// render player names
+	textRenderer->renderText( "Player 1", 0.075f * width, ( heightRange.x / 12 ) * 0.5f, ( heightRange.x / 12 ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+	textRenderer->renderText( "Player 2", 0.925f * width, ( heightRange.x / 12 ) * 0.5f, ( heightRange.x / 12 ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
 
-	// get punishment icon
-	Texture image;
-	PUNISHMENT_TYPE type;
-	if ( nextPunishmentCountdown > 0.0f ) {
-		type = nextPunishmentType;
-	} else {
-		type = punishment.type;
-	}
-	switch ( type ) {
-	case SLOW:
-		image = ResourceManager::getTexture( "slow_punishment" );
-		break;
-	case SHRINK:
-		image = ResourceManager::getTexture( "shrink_punishment" );
-		break;
-	case INVERSE:
-		image = ResourceManager::getTexture( "inverse_punishment" );
-		break;
-	case TRAIL:
-		image = ResourceManager::getTexture( "trail_punishment" );
-		break;
-	case ABUSE:
-		image = ResourceManager::getTexture( "abuse_punishment" );
-		break;
-	case BLIND:
-		image = ResourceManager::getTexture( "blind_punishment" );
-		break;
-	case FLIP:
-		image = ResourceManager::getTexture( "flip_punishment" );
-		break;
-	}
-
-	// draw punishment countdown
-	glm::vec2 punishmentPos, punishmentSize;
-	GLfloat sizeY = (0.755f * heightRange.x) * 0.9;
-	GLfloat scale = (sizeY / pBoxSize.y);
-	punishmentSize = pBoxSize * scale;
-	if ( nextPunishmentCountdown > 0.0f ) {
-
-		if ( state != GAME_OVER && state != GAME_PAUSED ) {
-			// draw punishment countdown
-			ss.str( std::string() );
-			ss << (GLint)nextPunishmentCountdown;
-			textRenderer->renderText( ss.str(), width / 2.0f, heightRange.x * ( 1.0f / 3.0f ) + heightRange.x * ( 2.0f / 3.0f ) * 0.3f, ( heightRange.x * ( 2.0f / 3.0f ) * 0.4f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
-		}
-
-		// draw punishment icon and text
-		GLfloat p1EnergyRatio = p1Energy / ( p1Energy + p2Energy );
-		if ( p1EnergyRatio <= 0.25f ) {
-			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
-			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-		} else if ( p1EnergyRatio >= 0.75f ) {
-			spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
-			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-		} else {
-			spriteRenderer->drawSprite( image, leftPos, pBoxSize, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
-			spriteRenderer->drawSprite( image, rightPos, pBoxSize, 0.0f );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-		}
-	} else {
-		ss.str( std::string() );
-		if ( punishment.charges > 0 ) {
-			ss << "C:" << punishment.charges;
-		} else {
-			ss << "T:" << (GLint)punishment.timeLeft;
-		}
-
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), rightPos, pBoxSize, 0.0f );
-		spriteRenderer->drawSprite( ResourceManager::getTexture( "black_punishment_box" ), leftPos, pBoxSize, 0.0f );
-
-		// draw active punishment
-		if ( punishment.player == P1_SELECTED ) {
-			punishmentPos = glm::vec2( 0.02f * 0.15f * width + ( 1.5 * punishmentSize.x ), ( 0.245f * heightRange.x ) * 1.1f);
-			// draw current punishment and its duration
-			textRenderer->renderText( Punishment::getPunishmentName( type ), leftTextPos.x + textBoxSize.x / 2.0f, leftTextPos.y + textBoxSize.y * 0.35f, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-			textRenderer->renderText( ss.str(), leftPos.x + pBoxSize.x / 2.0f, leftPos.y + pBoxSize.y * 0.35f, ( pBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
-		} else {
-			punishmentPos = glm::vec2( width - ( 0.02f * 0.15f * width ) - ( 2.5 * punishmentSize.x ), ( 0.245f * heightRange.x ) * 1.1f );
-			// draw current punishment and its duration
-			textRenderer->renderText( Punishment::getPunishmentName( type ), rightTextPos.x + textBoxSize.x / 2.0f, rightTextPos.y + textBoxSize.y * 0.35, ( textBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
-			textRenderer->renderText( ss.str(), rightPos.x + pBoxSize.x / 2.0f, leftPos.y + pBoxSize.y * 0.35f, ( pBoxSize.y * 0.3f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
-		}
-		spriteRenderer->drawSprite( image, punishmentPos, punishmentSize, 0.0f, glm::vec4( 1.0f ), punishment.player == P1_SELECTED );
-	}
-
-	// render powerups
-	if (p1PowerUp.charges > 0) {
-		glm::vec2 pos = glm::vec2(0.02f * 0.15f * width, (0.245f * heightRange.x) * 1.1f);
-		spriteRenderer->drawSprite(p1PowerUp.object.sprite, pos, punishmentSize, 0.0f, glm::vec4(1.0f));
-		ss.str(std::string());
-		ss << p1PowerUp.charges;
-		glm::vec2 textPos = glm::vec2( punishmentSize.x / 10.0f, pos.y + punishmentSize.y * 0.7f);
-		textRenderer->renderText(ss.str(), textPos.x, textPos.y, (punishmentSize.y * 0.2f) / 16.0f, glm::vec3(1.0f));
-	}
-	if (p2PowerUp.charges > 0) {
-		glm::vec2 pos = glm::vec2(width - (0.02f * 0.15f * width) - punishmentSize.x, (0.245f * heightRange.x) * 1.1f);
-		spriteRenderer->drawSprite(p2PowerUp.object.sprite, pos, punishmentSize, 0.0f, glm::vec4(1.0f), GL_FALSE);
-		ss.str(std::string());
-		ss << p2PowerUp.charges;
-		glm::vec2 textPos = glm::vec2(width - punishmentSize.x / 10.0f, pos.y + punishmentSize.y * 0.7f);
-		textRenderer->renderText(ss.str(), textPos.x, textPos.y, (punishmentSize.y * 0.2f) / 16.0f, glm::vec3(1.0f), RIGHT_ALIGNED);
-	}
+	// draw punishments and abilities for each player
+	renderPlayerItems();
 
 	if ( state == GAME_OVER ) {
 		textRenderer->renderText( "Press ENTER to start or ESC to quit", 0.5f * width,
@@ -1320,6 +1250,113 @@ void GravityPong::renderGUI() const {
 			heightRange.x * ( 1.0f / 3.0f ) + heightRange.x * ( 2.0f / 3.0f ) * 0.43f, ( heightRange.x * ( 2.0f / 3.0f ) * 0.14f ) / 16.0f, glm::vec3( 1.0f ), CENTERED );
 	}
 
+}
+
+void GravityPong::renderPlayerItems() const {
+
+	glm::vec2 pos, size;
+	std::stringstream ss;
+	glm::vec2 totalSize = glm::vec2( width * 0.15f + width * 0.7f * 0.05f, heightRange.x * 2.0f / 3.0f);
+	GLfloat xOffset = totalSize.x * 0.02f;
+	size = glm::vec2( (totalSize.x * 0.85f) / 3.0f, totalSize.y * 0.9f );
+	pos = glm::vec2( xOffset, ( heightRange.x * 1.0f / 3.0f ) + size.y * 0.05f );
+	glm::vec2 textBoxSize = glm::vec2( size.x * 0.4f, size.y * 0.25f );
+	glm::vec2 countBoxOffset( 0.0f, size.y * 0.75f );
+	glm::vec2 countTextOffset( countBoxOffset + glm::vec2( textBoxSize.x * 0.5f, textBoxSize.y * 0.15f) );
+
+	if ( p1PowerUp.charges > 0 ) {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture("ability_box"), pos, size, 0.0f, glm::vec4( 1.0f ) );
+		// draw ability
+		spriteRenderer->drawSprite( p1PowerUp.object.sprite, pos + size / 8.0f, size * 0.75f, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
+		// draw name overlay
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos, glm::vec2(size.x, size.y * 0.2f), 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( Ability::getAbilityName(p1PowerUp.type), pos.x + size.x / 2.0f, pos.y + size.y * 0.2f * 0.2f, ( size.y * 0.2f * 0.6f) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+		// draw charges overlay
+		ss.str( std::string() );
+		ss << p1PowerUp.charges;
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos + countBoxOffset, textBoxSize, 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( ss.str(), pos.x + countTextOffset.x, pos.y + countTextOffset.y, ( textBoxSize.y * 0.7f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+	} else {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "ability_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+	}
+	pos.x += xOffset + size.x;
+	if ( p1Punishment.player != NO_ONE ) {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+		// draw ability
+		spriteRenderer->drawSprite( p1Punishment.object.sprite, pos + size / 8.0f, size * 0.75f, 0.0f, glm::vec4( 1.0f ), GL_TRUE );
+		// draw name overlay
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos, glm::vec2( size.x, size.y * 0.2f ), 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( Punishment::getPunishmentName( p1Punishment.type ), pos.x + size.x / 2.0f, pos.y + size.y * 0.2f * 0.2f, ( size.y * 0.2f * 0.6f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+		// draw charges overlay
+		ss.str( std::string() );
+		if ( p1Punishment.charges == 0 ) {
+			ss << (GLint)p1Punishment.timeLeft;
+		} else {
+			ss << p1Punishment.charges;
+		}
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos + countBoxOffset, textBoxSize, 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( ss.str(), pos.x + countTextOffset.x, pos.y + countTextOffset.y, ( textBoxSize.y * 0.7f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+	} else {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+	}
+
+	// draw box for second punishment
+	pos.x += xOffset + size.x;
+	// draw ability box
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+
+	// player 2
+	pos.x = width - xOffset - size.x;
+	countBoxOffset = glm::vec2( size.x * 0.6f, size.y * 0.75f );
+	countTextOffset = glm::vec2( countBoxOffset + glm::vec2( textBoxSize.x * 0.5f, textBoxSize.y * 0.15f ) );
+	if ( p2PowerUp.charges > 0 ) {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "ability_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+		// draw ability
+		spriteRenderer->drawSprite( p2PowerUp.object.sprite, pos + size / 8.0f, size * 0.75f, 0.0f, glm::vec4( 1.0f ) );
+		// draw name overlay
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos, glm::vec2( size.x, size.y * 0.2f ), 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( Ability::getAbilityName( p2PowerUp.type ), pos.x + size.x / 2.0f, pos.y + size.y * 0.2f * 0.2f, ( size.y * 0.2f * 0.6f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+		// draw charges overlay
+		ss.str( std::string() );
+		ss << p2PowerUp.charges;
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos + countBoxOffset, textBoxSize, 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( ss.str(), pos.x + countTextOffset.x, pos.y + countTextOffset.y, ( textBoxSize.y * 0.7f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+	} else {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "ability_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+	}
+	pos.x -= xOffset + size.x;
+	if ( p2Punishment.player != NO_ONE ) {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+		// draw ability
+		spriteRenderer->drawSprite( p2Punishment.object.sprite, pos + size / 8.0f, size * 0.75f, 0.0f, glm::vec4( 1.0f ) );
+		// draw name overlay
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos, glm::vec2( size.x, size.y * 0.2f ), 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( Punishment::getPunishmentName( p2Punishment.type ), pos.x + size.x / 2.0f, pos.y + size.y * 0.2f * 0.2f, ( size.y * 0.2f * 0.6f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+		// draw charges overlay
+		ss.str( std::string() );
+		if ( p2Punishment.charges == 0 ) {
+			ss << (GLint)p2Punishment.timeLeft;
+		} else {
+			ss << p2Punishment.charges;
+		}
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "item_overlay" ), pos + countBoxOffset, textBoxSize, 0.0f, glm::vec4( 1.0f ) );
+		textRenderer->renderText( ss.str(), pos.x + countTextOffset.x, pos.y + countTextOffset.y, ( textBoxSize.y * 0.7f ) / 16.0f, glm::vec3( 0.0f ), CENTERED );
+	} else {
+		// draw ability box
+		spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
+	}
+
+	// draw box for second punishment
+	pos.x -= xOffset + size.x;
+	// draw ability box
+	spriteRenderer->drawSprite( ResourceManager::getTexture( "punishment_box" ), pos, size, 0.0f, glm::vec4( 1.0f ) );
 }
 
 void GravityPong::renderGUIRetro() const {
@@ -1348,18 +1385,6 @@ void GravityPong::renderGUIRetro() const {
 	distBetween = ( endX - startX ) / NUM_LIVES;
 	for ( int i = p2Lives; i > 0; --i, endX -= distBetween ) {
 		retroRenderer.renderLine( glm::vec2( endX, pos.y ), glm::vec2( endX, pos.y + size.y ) );
-	}
-
-	// draw punishment notification
-	offsetX = 0.40f;
-	pos = glm::vec2( offsetX * width, pos.y + size.y + heightRange.x * 0.03f );
-	size = glm::vec2( ( width * ( 1.0f - 2.0f * offsetX ) ), 0.5f * heightRange.x );
-	//retroRenderer.renderRect( pos, pos + size );
-
-	if ( nextPunishmentCountdown > 0.0f ) {
-		pos = glm::vec2( pos.x + size.x * 0.05f, pos.y + size.y * 0.3f );
-		// draw punishment countdown
-		retroRenderer.renderRect( glm::vec2( pos ), glm::vec2( pos.x + size.x * 0.9f * ( nextPunishmentCountdown / PUNISHMENT_COUNTDOWN ), pos.y + size.y * 0.6f ) );
 	}
 
 	if ( state == GAME_OVER ) {
@@ -1404,28 +1429,28 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 	if ( p2MissileCooldown > 0.0f ) {
 		p2MissileCooldown -= dt;
 	}
-	if ( nextPowerUpCooldown > 0.0f && powerUps.size() < MAX_NUM_POWERUPS ) {
-		nextPowerUpCooldown -= dt;
+	if ( nextSpawnTime > 0.0f ) {
+		// spawn powerups, punishments, and energy
+		nextSpawnTime -= dt;
 		// apply punishment if cooldown reaches 0
-		if ( nextPowerUpCooldown <= 0.0f ) {
-			nextPowerUpCooldown = MIN_POWERUP_TIME + ( rand() % ( MAX_POWERUP_TIME - MIN_POWERUP_TIME ) );
-			POWERUP_TYPE randomPower = (POWERUP_TYPE)( rand() % NUM_POWERUPS );
-			glm::vec2 pos( width / 2.0f - POWERUP_RADIUS, heightRange.x + ( rand() % (int)( ( heightRange.y - heightRange.x - POWERUP_RADIUS * 2.0f) ) ) );
-			powerUps.push_back( PowerUp( randomPower, POWERUP_RADIUS, pos ) );
+		if ( nextSpawnTime <= 0.0f ) {
+			spawnAbility();
+			spawnPunishment();
 		}
+	} else if ( nextSpawnTime <= 0.0f && spawnedAbilities.size() == 0 && spawnedPunishments.size() == 0 ) {
+		// reset the spawn timer
+		nextSpawnTime = MIN_POWERUP_TIME + ( rand() % ( MAX_POWERUP_TIME - MIN_POWERUP_TIME ) );
 	}
-	if ( nextPunishmentCountdown > 0.0f && punishment.player == NO_ONE ) {
-		nextPunishmentCountdown -= dt;
-		// apply punishment if cooldown reaches 0
-		if ( nextPunishmentCountdown <= 0.0f ) {
-			dealPunishment();
-		}
-	} else if ( punishment.player != NO_ONE && punishment.timeLeft > 0.0f || punishment.charges > 0 ) {
+
+}
+
+void GravityPong::updatePunishment( GLfloat dt, Punishment& punishment ) {
+	if ( punishment.player != NO_ONE && ( punishment.timeLeft > 0.0f || punishment.charges > 0 ) ) {
 		if ( punishment.timeLeft > 0.0f ) {
 			punishment.timeLeft -= dt;
 
 			if ( punishment.type == TRAIL && punishment.charges >= (int)punishment.timeLeft + 1 ) {
-				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 100.0f );
+				GravityBall gravBall( punishment.paddle->getCenter() - GRAV_STARTING_RADIUS, GRAV_STARTING_RADIUS, ResourceManager::getTexture( "gravity_ball" ), 0.0f, GRAV_STARTING_RADIUS, 10.0f );
 				gravBall.isCollapsing = GL_TRUE;
 				gravBall.color = glm::vec4( 1.0f );
 				gravityBalls.push_back( gravBall );
@@ -1434,7 +1459,7 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 
 			// undo punishment
 			if ( punishment.timeLeft <= 0.0f ) {
-				clearPunishment();
+				clearPunishment( punishment );
 			}
 		} else {
 
@@ -1455,71 +1480,50 @@ void GravityPong::handleCooldowns( const GLfloat dt ) {
 	}
 }
 
-void GravityPong::dealPunishment() {
-	// select player to punish based on energy Levels
-	PLAYER_SELECTED selectedPlayer = NO_ONE;
-	PaddleObject* paddle = nullptr;
-	GLfloat p1EnergyPercent = p1Energy / ( p1Energy + p2Energy );
+void GravityPong::punishPlayer( const Punishment& punishment ) {
+	if ( punishment.player != NO_ONE ) {
 
-	// select player to punish based on energy levels
-	if ( p1EnergyPercent <= 0.25f ) {
-		selectedPlayer = P1_SELECTED;
-		paddle = player1;
-	} else if ( p1EnergyPercent >= 0.75f ) {
-		selectedPlayer = P2_SELECTED;
-		paddle = player2;
-	} else {
-		int randomPlayer = rand() % 100;
-		if ( randomPlayer <= 100 * ( 1.0 - p1EnergyPercent ) ) {
-			selectedPlayer = P1_SELECTED;
-			paddle = player1;
-		} else {
-			selectedPlayer = P2_SELECTED;
-			paddle = player2;
+		switch ( punishment.type ) {
+		case SLOW:
+			punishment.paddle->speed = PADDLE_SPEED / 1.5f;
+			break;
+		case SHRINK:
+			punishment.paddle->pos.y += 0.25f * PADDLE_SIZE.y;
+			punishment.paddle->size.y = PADDLE_SIZE.y * SHRINK_AMOUNT;
+			break;
+		case ABUSE:
+			ball->startLaunch( punishment.player );
+			break;
+		case INVERSE:
+			punishment.paddle->speed = -punishment.paddle->speed;
+			break;
+		case BLIND:
+			if ( punishment.paddle == player1 ) {
+				postEffectsRenderer->blindPlayer( *punishment.paddle, BLIND_RANGE, heightRange, glm::vec2( 0.0f, width / 4.0f ), width / 4.0f );
+			} else {
+				postEffectsRenderer->blindPlayer( *punishment.paddle, BLIND_RANGE, heightRange, glm::vec2( width * 3.0f / 4.0f, width ), width * 3.0f / 4.0f );
+			}
+			break;
+		case FLIP:
+			if ( punishment.paddle == player1 ) {
+				postEffectsRenderer->flipScreen( glm::vec2( 0.0f, width / 3.0f ), heightRange );
+			} else {
+				postEffectsRenderer->flipScreen( glm::vec2( width / 3.0f * 2.0f, width ), heightRange );
+			}
+			break;
 		}
-	}
 
-	punishment = Punishment( selectedPlayer, nextPunishmentType, paddle );
-	switch ( nextPunishmentType ) {
-	case SLOW:
-		punishment.paddle->speed = PADDLE_SPEED / 1.5f;
-		break;
-	case SHRINK:
-		paddle->pos.y += 0.25f * PADDLE_SIZE.y;
-		punishment.paddle->size.y = PADDLE_SIZE.y * SHRINK_AMOUNT;
-		break;
-	case ABUSE:
-		ball->startLaunch( punishment.player );
-		--punishment.charges;
-		break;
-	case INVERSE:
-		punishment.paddle->speed = -punishment.paddle->speed;
-		break;
-	case BLIND:
-		if ( punishment.paddle == player1 ) {
-			postEffectsRenderer->blindPlayer( *player1, BLIND_RANGE, heightRange );
+		if ( punishment.player == P1_SELECTED ) {
+			p1Punishment = punishment;
 		} else {
-			postEffectsRenderer->blindPlayer( *player2, BLIND_RANGE, heightRange );
+			p2Punishment = punishment;
 		}
-		break;
-	case FLIP:
-		if ( punishment.paddle == player1 ) {
-			postEffectsRenderer->flipScreen( glm::vec2( 0.0f, width / 3.0f ), heightRange );
-		} else {
-			postEffectsRenderer->flipScreen( glm::vec2( width / 3.0f * 2.0f, width ), heightRange );
-		}
-		break;
-	}
 
-	// player punishment sound
-	if ( punishment.player == P1_SELECTED ) {
 		soundEngine->play2D( "resources/sounds/tech_punished.wav", GL_FALSE );
-	} else {
-		soundEngine->play2D( "resources/sounds/alien_punished.wav", GL_FALSE );
 	}
 }
 
-void GravityPong::clearPunishment() {
+void GravityPong::clearPunishment( Punishment& punishment ) {
 	if ( punishment.player != NO_ONE ) {
 		switch ( punishment.type ) {
 		case SLOW:
@@ -1535,13 +1539,8 @@ void GravityPong::clearPunishment() {
 			postEffectsRenderer->clearEffects();
 			break;
 		}
-
 		punishment = Punishment();
 	}
-	// randomly selected the next punishment
-	nextPunishmentCountdown = PUNISHMENT_COUNTDOWN;
-	int randomPunishment = rand() % NUM_PUNISHMENTS;
-	nextPunishmentType = (PUNISHMENT_TYPE)randomPunishment;
 }
 
 void GravityPong::causeMissileExplosion( const Missile& missile, const GLboolean missileCheck ) {
@@ -1635,4 +1634,26 @@ void GravityPong::addEnergy( PLAYER_SELECTED player, GLfloat energy ) {
 	} else if ( player == P2_SELECTED ) {
 		p2Energy += energy;
 	}
+}
+
+void GravityPong::spawnAbility() {
+	// randomly determine which ability will spawn
+	ABILITY_TYPE randomPower = (ABILITY_TYPE)( rand() % NUM_POWERUPS );
+	// determine spawn position based on energy
+	GLfloat spawnPosX = ( ( width * ( 1.0f - SPAWN_VARIABILITY ) ) / 2.0f ) + ( ( width * SPAWN_VARIABILITY ) * ( p2Energy / (p1Energy + p2Energy) ) );
+	GLfloat spawnPosY = heightRange.x + ( rand() % (int)( ( heightRange.y - heightRange.x - POWERUP_RADIUS * 2.0f ) ) );
+	spawnedAbilities.push_back( Ability( randomPower, POWERUP_RADIUS, glm::vec2( spawnPosX, spawnPosY ) ) );
+}
+
+void GravityPong::spawnPunishment() {
+	// randomly determine which punishment will spawn
+	PUNISHMENT_TYPE randomPower = (PUNISHMENT_TYPE)( rand() % NUM_PUNISHMENTS );
+	// determine spawn position based on energy
+	GLfloat spawnPosX = ( ( width * ( 1.0f - SPAWN_VARIABILITY ) ) / 2.0f ) + ( ( width * SPAWN_VARIABILITY ) * ( p1Energy / ( p1Energy + p2Energy ) ) );
+	GLfloat spawnPosY = heightRange.x + ( rand() % (int)( ( heightRange.y - heightRange.x - POWERUP_RADIUS * 2.0f ) ) );
+	spawnedPunishments.push_back( Punishment( randomPower, POWERUP_RADIUS, glm::vec2( spawnPosX, spawnPosY ) ) );
+}
+
+void GravityPong::spawnEnergy() {
+
 }

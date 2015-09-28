@@ -52,7 +52,7 @@ enum PUNISHMENT_TYPE {
 	NUM_PUNISHMENTS
 };
 
-enum POWERUP_TYPE {
+enum ABILITY_TYPE {
 	MISSILE,
 	LEECH,
 	GRAPPLE,
@@ -62,17 +62,17 @@ enum POWERUP_TYPE {
 
 typedef std::tuple<GLboolean, Direction, glm::vec2> Collision;
 
-struct PowerUp {
+struct Ability {
 	BallObject object;
-	POWERUP_TYPE type;
+	ABILITY_TYPE type;
 	GLuint charges;
 
-	PowerUp() {
+	Ability() {
 		type = NONE;
 		charges = 0;
 	}
 
-	PowerUp(POWERUP_TYPE type, GLfloat radius, glm::vec2 pos) {
+	Ability( ABILITY_TYPE type, GLfloat radius, glm::vec2 pos) {
 		this->type = type;
 		switch (type) {
 		case MISSILE:
@@ -99,6 +99,20 @@ struct PowerUp {
 	void draw( SpriteRenderer& renderer ) {
 		object.draw( renderer );
 	}
+
+	static std::string getAbilityName( ABILITY_TYPE type ) {
+		switch ( type ) {
+		case MISSILE:
+			return "Missile";
+			break;
+		case LEECH:
+			return "Leech";
+			break;
+		case GRAPPLE:
+			return "Grapple";
+			break;
+		}
+	}
 };
 
 struct Punishment {
@@ -107,6 +121,7 @@ struct Punishment {
 	GLfloat			timeLeft;
 	GLuint			charges;
 	PaddleObject*	paddle;
+	BallObject		object;
 
 	Punishment() {
 		player = NO_ONE;
@@ -116,41 +131,51 @@ struct Punishment {
 		paddle = nullptr;
 	}
 
-	Punishment(PLAYER_SELECTED player, PUNISHMENT_TYPE type, PaddleObject* paddle) {
+	Punishment( PUNISHMENT_TYPE type, GLfloat radius, glm::vec2 pos ) {
 		this->type = type;
-		this->player = player;
-		this->paddle = paddle;
+		this->player = NO_ONE;
+		this->paddle = nullptr;
 
 		switch (type) {
 		case SLOW:
+			object = BallObject( pos, radius, ResourceManager::getTexture( "slow_punishment" ) );
 			timeLeft = 10.0f;
 			charges = 0;
 			break;
 		case SHRINK:
+			object = BallObject( pos, radius, ResourceManager::getTexture( "shrink_punishment" ) );
 			timeLeft = 10.0f;
 			charges = 0;
 			break;
 		case ABUSE:
+			object = BallObject( pos, radius, ResourceManager::getTexture( "abuse_punishment" ) );
 			timeLeft = 0.0f;
-			charges = 3;
+			charges = 2; // actually this number + 1
 			break;
 		case INVERSE:
+			object = BallObject( pos, radius, ResourceManager::getTexture( "inverse_punishment" ) );
 			timeLeft = 5.0f;
 			charges = 0;
 			break;
 		case TRAIL:
+			object = BallObject( pos, radius, ResourceManager::getTexture( "trail_punishment" ) );
 			timeLeft = 5.0f;
 			charges = 5;
 			break;
 		case BLIND:
+			object = BallObject( pos, radius, ResourceManager::getTexture( "blind_punishment" ) );
 			timeLeft = 10.0f;
 			charges = 0;
 			break;
 		case FLIP:
+			object = BallObject( pos, radius, ResourceManager::getTexture( "flip_punishment" ) );
 			timeLeft = 10.0f;
 			charges = 0;
 			break;
 		}
+
+		object.mass = 5.0f;
+		object.color = glm::vec4( glm::vec3( 1.0f ), 0.5f );
 	}
 
 	static std::string getPunishmentName(PUNISHMENT_TYPE type) {
@@ -179,6 +204,14 @@ struct Punishment {
 		}
 	}
 
+	void update( GLfloat dt ) {
+		object.update( dt );
+	}
+
+	void draw( SpriteRenderer& renderer ) {
+		object.draw( renderer );
+	}
+
 };
 
 class GravityPong : public Game {
@@ -198,7 +231,7 @@ private:
 	// ball constants
 	const GLfloat DEFAULT_BALL_SPEED = 1000.0f;
 	const GLfloat MAX_HIT_ANGLE = 70.0f;
-	const GLfloat MIN_BALL_SPEED_X = 200.0f;
+	const GLfloat MIN_BALL_SPEED_X = 150.0f;
 	const GLfloat END_MAX_BALL_SPEED = 1400.0f;
 	const GLfloat START_MAX_BALL_SPEED = 1000.0f;
 	const GLfloat BALL_MAX_SPEED_INCREASE_RATE = 10;
@@ -239,13 +272,14 @@ private:
 	// punishments
 	const GLfloat PUNISHMENT_COUNTDOWN = 10.0f;
 	const GLfloat SHRINK_AMOUNT = 0.65;
-	const GLfloat BLIND_RANGE = 400.0f;
+	const GLfloat BLIND_RANGE = 300.0f;
 
 	// power ups
 	const GLuint		MIN_POWERUP_TIME = 10;
 	const GLuint		MAX_POWERUP_TIME = 15;
 	const GLuint		MAX_NUM_POWERUPS = 2;
 	const GLfloat		POWERUP_RADIUS;
+	const GLfloat		SPAWN_VARIABILITY = 0.3f;
 
 	GLboolean					inRetroMode;
 	GameState					state;
@@ -267,11 +301,11 @@ private:
 	GLfloat						p1Energy, p2Energy;
 	glm::vec2					heightRange;
 	GLfloat						p1BounceCooldown, p2BounceCooldown;
-	GLfloat						nextPunishmentCountdown, nextPowerUpCooldown;
-	PUNISHMENT_TYPE				nextPunishmentType;
-	Punishment					punishment;
-	std::list<PowerUp>			powerUps;
-	PowerUp						p1PowerUp, p2PowerUp;
+	GLfloat						nextSpawnTime;
+	std::list<Punishment>		spawnedPunishments;
+	std::list<Ability>			spawnedAbilities;
+	Punishment					p1Punishment, p2Punishment;
+	Ability						p1PowerUp, p2PowerUp;
 	GLfloat						slowTimeTillLaunch, currentMaxBallSpeed;
 
 	// sounds
@@ -281,6 +315,7 @@ private:
 	void						renderRetro();
 	void						renderGUIRetro() const;
 	void						renderGUI() const;
+	void						renderPlayerItems() const;
 	GLboolean					checkRectRectCollision(const GameObject& one, const GameObject& two) const;
 	GLboolean					checkBallBallCollision(const BallObject& one, const BallObject& two) const;
 	Collision					checkBallRectCollision(const BallObject& one, const GameObject& two) const;
@@ -293,8 +328,12 @@ private:
 	void						unselectGravBall(const PLAYER_SELECTED player);
 	GravityBall*				findSelectedGravBall(const PLAYER_SELECTED player);
 	void						handleCooldowns(const GLfloat dt);
-	void						dealPunishment();
-	void						clearPunishment();
+	void						spawnAbility();
+	void						spawnPunishment();
+	void						spawnEnergy();
+	void						punishPlayer( const Punishment& punishment );
+	void						clearPunishment( Punishment& punishment );
+	void						updatePunishment( GLfloat dt, Punishment& punishment );
 	void						causeMissileExplosion(const Missile& missile, const GLboolean missileCheck = GL_TRUE);
 	void						deleteMissile(Missile*& missile);
 	void						addEnergy(PLAYER_SELECTED player, GLfloat energy);

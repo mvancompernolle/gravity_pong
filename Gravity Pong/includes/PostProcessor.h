@@ -26,7 +26,7 @@ public:
 	void				beginRender();
 	void				endRender();
 	void				render( GLfloat time );
-	void				blindPlayer( const GameObject& player, GLfloat blindRange, glm::vec2 heightRange );
+	void				blindPlayer( const GameObject& player, GLfloat blindRange, glm::vec2 heightRange, glm::vec2 widthRange, GLfloat fadeInLine );
 	void				flipScreen( glm::vec2 widthRange, glm::vec2 heightRange );
 	void				clearEffects();
 private:
